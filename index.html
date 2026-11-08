@@ -3,104 +3,133 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Aegis Budget — Household Financial Engine</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Aegis Budget — Household Money Tracker</title>
   <style>
     :root {
-      --bg: #090d16;
-      --surface: #131b2e;
-      --surface-border: #1e293b;
-      --card-bg: rgba(19, 27, 46, 0.7);
-      --text: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent: #3b82f6;
-      --accent-glow: rgba(59, 130, 246, 0.25);
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
+      --bg: #0c120f;
+      --surface: #141f19;
+      --surface-border: #23342b;
+      --card-bg: rgba(20, 31, 25, 0.85);
+      --text: #f3f5f4;
+      --text-muted: #95a59c;
+      --emerald: #10b981;
+      --emerald-dark: #065f46;
+      --amber: #f59e0b;
+      --terracotta: #ef4444;
       --radius-lg: 16px;
       --radius-md: 10px;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 90px; }
-    
-    /* Top Header */
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 95px; }
+
     header {
       display: flex; justify-content: space-between; align-items: center;
-      padding: 16px 24px; border-bottom: 1px solid var(--surface-border);
-      background: rgba(9, 13, 22, 0.85); backdrop-filter: blur(12px);
+      padding: 16px 20px; border-bottom: 1px solid var(--surface-border);
+      background: rgba(12, 18, 15, 0.92); backdrop-filter: blur(12px);
       position: sticky; top: 0; z-index: 40;
     }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; }
-    .brand-logo { width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
-    .live-sync { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-muted); background: #1e293b; padding: 6px 12px; border-radius: 999px; }
-    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
-    .live-dot.syncing { background: var(--warning); box-shadow: 0 0 8px var(--warning); animation: pulse 1s infinite alternate; }
-    @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; }
+    .brand-logo { width: 32px; height: 32px; border-radius: 9px; background: linear-gradient(135deg, #059669, #10b981); display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+    .live-sync { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text-muted); background: #1c2b23; padding: 6px 12px; border-radius: 999px; cursor: pointer; border: 1px solid var(--surface-border); }
+    .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 8px var(--emerald); }
+    .live-dot.syncing { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: pulse 0.9s infinite alternate; }
+    @keyframes pulse { from { opacity: 0.3; } to { opacity: 1; } }
 
-    /* Layout */
-    .container { max-width: 1000px; margin: 0 auto; padding: 20px 16px; }
+    .container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
-    /* Navigation Dock */
+    /* Top KPI Cards */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .kpi-card { background: var(--card-bg); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 14px; }
+    .kpi-card.featured { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); }
+    .kpi-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 4px; }
+    .kpi-val { font-size: 1.35rem; font-weight: 700; }
+
+    /* Filters */
+    .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; }
+    .filter-btn {
+      background: #1c2b23; border: 1px solid var(--surface-border); color: var(--text-muted);
+      padding: 7px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .filter-btn.active { background: var(--emerald); color: #042416; border-color: var(--emerald); }
+
+    /* Envelopes Widget Panel */
+    .panel { background: var(--card-bg); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--surface-border); }
+    .panel-title { font-size: 0.95rem; font-weight: 600; }
+
+    .envelope-row {
+      display: flex; flex-direction: column; gap: 6px; padding: 12px 0;
+      border-bottom: 1px solid #1a2920;
+    }
+    .envelope-row:last-child { border-bottom: none; }
+    .env-meta { display: flex; justify-content: space-between; align-items: center; }
+    .env-title { font-weight: 600; font-size: 0.9rem; }
+    .env-numbers { font-size: 0.82rem; }
+    .env-sub-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; }
+
+    .track { width: 100%; height: 7px; background: #1a2720; border-radius: 999px; overflow: hidden; }
+    .fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
+
+    /* Fast Entry Form */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
+    input, select {
+      width: 100%; background: #0e1712; border: 1px solid var(--surface-border);
+      color: #fff; padding: 11px; border-radius: var(--radius-md); font-size: 0.9rem; outline: none;
+    }
+    input:focus, select:focus { border-color: var(--emerald); }
+
+    /* Quick Payee Chips */
+    .chip-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
+    .chip {
+      background: #19271f; border: 1px solid #283c30; color: #cbd5cb; padding: 5px 10px;
+      border-radius: 999px; font-size: 0.75rem; white-space: nowrap; cursor: pointer;
+    }
+    .chip:hover { background: #23372c; color: #fff; }
+
+    .btn {
+      width: 100%; background: var(--emerald); color: #042416; border: none;
+      padding: 13px; border-radius: var(--radius-md); font-weight: 700; font-size: 0.95rem; cursor: pointer;
+    }
+    .btn:hover { opacity: 0.95; }
+
+    /* Split Toggle Box */
+    .split-toggle-box {
+      background: #16241c; border: 1px dashed #2f493b; border-radius: var(--radius-md);
+      padding: 12px; margin-bottom: 14px;
+    }
+    .split-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+
+    /* Bill Cards */
+    .bill-group { margin-bottom: 16px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); overflow: hidden; }
+    .bill-group-header { background: #1a2920; padding: 10px 14px; font-size: 0.82rem; font-weight: 700; display: flex; justify-content: space-between; }
+    .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #1a2720; font-size: 0.85rem; }
+    .bill-item:last-child { border-bottom: none; }
+
+    /* Bottom Dock */
     .nav-dock {
       position: fixed; bottom: 0; left: 0; right: 0; height: 68px;
-      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px);
+      background: rgba(12, 18, 15, 0.95); backdrop-filter: blur(16px);
       border-top: 1px solid var(--surface-border); display: flex; justify-content: space-around;
       align-items: center; z-index: 50; padding: 0 10px;
     }
     .nav-item {
       display: flex; flex-direction: column; align-items: center; gap: 4px;
-      color: var(--text-muted); font-size: 0.72rem; cursor: pointer; border: none; background: none; transition: 0.2s;
+      color: var(--text-muted); font-size: 0.72rem; cursor: pointer; border: none; background: none;
     }
-    .nav-item.active { color: #60a5fa; font-weight: 600; }
+    .nav-item.active { color: var(--emerald); font-weight: 600; }
     .nav-item svg { width: 22px; height: 22px; }
 
-    /* KPI Cards */
-    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
-    .kpi-card { background: var(--card-bg); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 16px; }
-    .kpi-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.04em; margin-bottom: 4px; }
-    .kpi-val { font-size: 1.5rem; font-weight: 700; }
-
-    /* Card Panels */
-    .panel { background: var(--card-bg); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 18px; }
-    .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .panel-title { font-size: 1rem; font-weight: 600; }
-
-    /* Envelopes List */
-    .envelope-item {
-      display: flex; flex-direction: column; gap: 8px; padding: 14px 0;
-      border-bottom: 1px solid #1e293b;
+    #toast {
+      display: none; position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+      background: #064e3b; color: #a7f3d0; border: 1px solid #059669;
+      padding: 10px 20px; border-radius: 999px; font-size: 0.82rem; font-weight: 600; z-index: 100;
     }
-    .envelope-item:last-child { border-bottom: none; }
-    .env-top { display: flex; justify-content: space-between; align-items: center; }
-    .env-name { font-weight: 600; font-size: 0.92rem; }
-    .env-amounts { font-size: 0.85rem; }
-    .progress-track { width: 100%; height: 8px; background: #1e293b; border-radius: 999px; overflow: hidden; }
-    .progress-fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
-
-    /* Forms */
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 6px; }
-    input, select, textarea {
-      width: 100%; background: #0b1120; border: 1px solid var(--surface-border);
-      color: #fff; padding: 12px; border-radius: var(--radius-md); font-size: 0.9rem; outline: none;
-    }
-    input:focus, select:focus { border-color: var(--accent); }
-    .btn {
-      width: 100%; background: var(--accent); color: white; border: none;
-      padding: 14px; border-radius: var(--radius-md); font-weight: 600; font-size: 0.95rem; cursor: pointer;
-    }
-    .btn:hover { background: #2563eb; }
-
-    /* Bill Routing Cards */
-    .acct-section { margin-bottom: 20px; }
-    .acct-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; margin-bottom: 10px; }
-    .badge-checking { background: #1e3a8a; color: #93c5fd; }
-    .badge-chase { background: #065f46; color: #6ee7b7; }
-    .badge-usaa-cc { background: #7c2d12; color: #fdba74; }
   </style>
 </head>
 <body>
+
+  <div id="toast">✓ Saved to Google Sheet</div>
 
   <header>
     <div class="brand">
@@ -116,25 +145,30 @@
   <div class="container">
     <!-- VIEW 1: DASHBOARD -->
     <div id="view-dashboard" class="view-panel">
-      <div class="kpi-row">
-        <div class="kpi-card">
-          <div class="kpi-label">Month Spent</div>
-          <div class="kpi-val" id="kpi-spent" style="color: var(--danger);">$0.00</div>
+      <div class="kpi-grid">
+        <div class="kpi-card featured">
+          <div class="kpi-label">Safe to Spend Per Day</div>
+          <div class="kpi-val" id="kpi-daily" style="color: var(--emerald);">$63.60<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">/day</span></div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Month Inflow</div>
-          <div class="kpi-val" id="kpi-inflow" style="color: var(--success);">$0.00</div>
+          <div class="kpi-label">Remaining to Spend</div>
+          <div class="kpi-val" id="kpi-remaining">$1,462.76</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Available Float</div>
-          <div class="kpi-val" id="kpi-remaining">$0.00</div>
+          <div class="kpi-label">Days Left</div>
+          <div class="kpi-val" id="kpi-days">23</div>
         </div>
+      </div>
+
+      <div class="filter-bar">
+        <button class="filter-btn active" id="f-life" onclick="setFilter('lifestyle')">Daily Spending (7)</button>
+        <button class="filter-btn" id="f-all" onclick="setFilter('all')">All Envelopes (21)</button>
       </div>
 
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">Active Envelopes (Auto-Topped)</span>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Synced to Sheet</span>
+          <span class="panel-title" id="panel-title">Active Envelopes</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">November 2026</span>
         </div>
         <div id="envelopes-container">
           <p style="color: var(--text-muted); font-size: 0.85rem;">Connecting to Google Sheet...</p>
@@ -142,69 +176,83 @@
       </div>
     </div>
 
-    <!-- VIEW 2: BILLS BY ACCOUNT -->
+    <!-- VIEW 2: MONTHLY BILLS -->
     <div id="view-bills" class="view-panel" style="display: none;">
+      <div class="kpi-grid">
+        <div class="kpi-card featured">
+          <div class="kpi-label">Checking Working Float</div>
+          <div class="kpi-val" style="color: var(--emerald);">$102,729.41</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Monthly Bills</div>
+          <div class="kpi-val">$3,315.22</div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">Monthly Obligations by Account</span>
+          <span class="panel-title">Itemized Bills by Account</span>
         </div>
 
-        <div class="acct-section">
-          <div class="acct-badge badge-checking">🏛️ USAA Checking (Direct ACH)</div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>Integrity Rentals (Rent)</strong><span style="font-weight: 600;">$1,577.49</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Due 1st of month • Townhouse lease auto-debit</div>
-          </div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>USAA Debt Loan</strong><span style="font-weight: 600;">$835.19</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Due 1st of month • Fixed auto-debit</div>
-          </div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>USAA Auto & Renters Insurance</strong><span style="font-weight: 600;">$183.91</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Due 15th of month • Auto-draft</div>
-          </div>
+        <div class="bill-group">
+          <div class="bill-group-header"><span>🏛️ USAA Checking (Direct ACH)</span><span>Subtotal: $2,596.59</span></div>
+          <div class="bill-item"><div><strong>Integrity Rentals (Rent)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st of month</div></div><span>$1,577.49</span></div>
+          <div class="bill-item"><div><strong>USAA Debt Loan</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st of month</div></div><span>$835.19</span></div>
+          <div class="bill-item"><div><strong>USAA Auto & Renters Insurance</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 15th of month</div></div><span>$183.91</span></div>
         </div>
 
-        <div class="acct-section">
-          <div class="acct-badge badge-chase">💳 Chase Card (Utilities & Media)</div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>Evergy (Electric)</strong><span style="font-weight: 600;">~$160.00</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Approx 20th–25th • Seasonal HVAC</div>
-          </div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>American Water</strong><span style="font-weight: 600;">~$75.00</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Approx 29th • Municipal water auto-pay</div>
-          </div>
+        <div class="bill-group">
+          <div class="bill-group-header"><span>💳 Chase Card (Auto-Pay)</span><span>Subtotal: $320.61</span></div>
+          <div class="bill-item"><div><strong>Apple Services (iCloud/Apps)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 3rd</div></div><span>$14.99</span></div>
+          <div class="bill-item"><div><strong>Nintendo Switch Online</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 5th</div></div><span>$3.99</span></div>
+          <div class="bill-item"><div><strong>Canva Pro</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 7th</div></div><span>$15.00</span></div>
+          <div class="bill-item"><div><strong>SiriusXM Radio</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 11th</div></div><span>$11.99</span></div>
+          <div class="bill-item"><div><strong>Disney+ Streaming</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 14th</div></div><span>$19.99</span></div>
+          <div class="bill-item"><div><strong>HBO Max</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 16th</div></div><span>$19.65</span></div>
+          <div class="bill-item"><div><strong>Evergy (Electricity)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 20th–25th</div></div><span>~$160.00</span></div>
+          <div class="bill-item"><div><strong>American Water</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 29th</div></div><span>~$75.00</span></div>
         </div>
 
-        <div class="acct-section">
-          <div class="acct-badge badge-usaa-cc">💳 USAA Credit Card (Municipal & Comms)</div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>Warrensburg Sewer</strong><span style="font-weight: 600;">~$95.00</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Due 1st–5th • City utility online portal</div>
-          </div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>Socket Telecom (Fiber Internet)</strong><span style="font-weight: 600;">$78.00</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Monthly auto-pay</div>
-          </div>
-          <div class="envelope-item">
-            <div class="env-top"><strong>Google Fi (Cell Phones)</strong><span style="font-weight: 600;">~$150.00</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted);">Due 28th • Family lines</div>
-          </div>
+        <div class="bill-group">
+          <div class="bill-group-header"><span>💳 USAA Credit Card (Utilities & Mobile)</span><span>Subtotal: $379.03</span></div>
+          <div class="bill-item"><div><strong>Warrensburg Sewer</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st–5th</div></div><span>~$95.00</span></div>
+          <div class="bill-item"><div><strong>Amazon Prime</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 4th</div></div><span>$8.19</span></div>
+          <div class="bill-item"><div><strong>Peacock TV</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 15th</div></div><span>$19.99</span></div>
+          <div class="bill-item"><div><strong>New York Times</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 16th</div></div><span>$0.86</span></div>
+          <div class="bill-item"><div><strong>Netflix (4K Family)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 22nd</div></div><span>$26.99</span></div>
+          <div class="bill-item"><div><strong>Socket Telecom (Fiber Internet)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Monthly</div></div><span>$78.00</span></div>
+          <div class="bill-item"><div><strong>Google Fi (Family Plans)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 28th</div></div><span>~$150.00</span></div>
+        </div>
+
+        <div class="bill-group">
+          <div class="bill-group-header"><span>💳 Discover (Streaming)</span><span>Subtotal: $18.99</span></div>
+          <div class="bill-item"><div><strong>Spotify Family</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 28th</div></div><span>$18.99</span></div>
         </div>
       </div>
     </div>
 
-    <!-- VIEW 3: LOG TRANSACTION -->
+    <!-- VIEW 3: FAST EXPENSE ENTRY -->
     <div id="view-log" class="view-panel" style="display: none;">
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">Fast Entry & Receipt Split</span>
+          <span class="panel-title">Fast Expense Entry</span>
         </div>
+
+        <label style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; display:block;">Quick-Select Payee:</label>
+        <div class="chip-scroll">
+          <div class="chip" onclick="setPayee('Walmart', 'Groceries', 'Chase')">🛒 Walmart</div>
+          <div class="chip" onclick="setPayee('Target', 'Groceries', 'Chase')">🎯 Target</div>
+          <div class="chip" onclick="setPayee('Shoppette', 'Car', 'Chase')">⛽ Shoppette</div>
+          <div class="chip" onclick="setPayee('Commissary', 'Groceries', 'USAA Credit Card')">🥩 Commissary</div>
+          <div class="chip" onclick="setPayee('Amazon', 'Miscellaneous', 'USAA Credit Card')">📦 Amazon</div>
+          <div class="chip" onclick="setPayee('Sonic', 'Food', 'Chase')">🍔 Sonic</div>
+          <div class="chip" onclick="setPayee('Chick-Fil-A', 'Food', 'Chase')">🍗 Chick-Fil-A</div>
+        </div>
+
         <form id="tx-form" onsubmit="submitTransaction(event)">
           <div class="form-group">
             <label>Payee / Vendor</label>
-            <input type="text" id="tx-payee" placeholder="e.g. Target, Shoppette, Casey's" required oninput="autoMatchEnvelope(this.value)">
+            <input type="text" id="tx-payee" placeholder="e.g. Target, Shoppette, Sonic" required oninput="autoMatchEnvelope(this.value)">
           </div>
           <div class="form-group">
             <label>Payment Account</label>
@@ -216,36 +264,101 @@
               <option value="Discover">Discover</option>
             </select>
           </div>
-          <div class="form-group">
+
+          <!-- SPLIT TOGGLE -->
+          <div class="split-toggle-box">
+            <div class="split-header" onclick="toggleSplitMode()">
+              <span style="font-size:0.8rem; font-weight:700;" id="split-toggle-text">+ Split Between 2 Envelopes (e.g. Groceries + House)</span>
+              <span id="split-arrow" style="font-size:0.8rem; color:var(--emerald);">▼</span>
+            </div>
+            
+            <div id="split-fields" style="display:none; margin-top:12px;">
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:8px;">
+                <div>
+                  <label style="font-size:0.72rem; color:var(--text-muted);">Envelope 1</label>
+                  <select id="split-env-1">
+                    <option value="Groceries">Groceries</option>
+                    <option value="Food">Food (Dining Out)</option>
+                    <option value="House">House</option>
+                    <option value="Beauty/Clothes">Beauty/Clothes</option>
+                    <option value="Teaching">Teaching</option>
+                    <option value="Miscellaneous">Miscellaneous</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:0.72rem; color:var(--text-muted);">Amount 1 ($)</label>
+                  <input type="number" step="0.01" id="split-amt-1" placeholder="50.00" oninput="updateTotalFromSplit()">
+                </div>
+              </div>
+
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <div>
+                  <label style="font-size:0.72rem; color:var(--text-muted);">Envelope 2</label>
+                  <select id="split-env-2">
+                    <option value="House">House</option>
+                    <option value="Teaching">Teaching</option>
+                    <option value="Beauty/Clothes">Beauty/Clothes</option>
+                    <option value="Groceries">Groceries</option>
+                    <option value="Miscellaneous">Miscellaneous</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:0.72rem; color:var(--text-muted);">Amount 2 ($)</label>
+                  <input type="number" step="0.01" id="split-amt-2" placeholder="30.00" oninput="updateTotalFromSplit()">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SINGLE ENVELOPE INPUT (Hidden in split mode) -->
+          <div class="form-group" id="single-envelope-group">
             <label>Category Envelope</label>
             <select id="tx-envelope">
-              <option value="Groceries">Groceries & Food</option>
-              <option value="Car">Car (Fuel & Upkeep)</option>
-              <option value="Utilities">Utilities</option>
-              <option value="Streaming/Subscriptions">Streaming & Subscriptions</option>
-              <option value="Beauty/Clothes">Beauty & Clothes</option>
-              <option value="Teaching">Teaching & School</option>
-              <option value="Entertainment">Entertainment & Gifts</option>
-              <option value="Travel">Travel Fund</option>
-              <option value="Rent">Rent</option>
-              <option value="Debt Payment: USAA Debt Loan">Debt Payoff</option>
+              <optgroup label="Daily Living">
+                <option value="Groceries">Groceries</option>
+                <option value="Food">Food (Dining Out)</option>
+                <option value="Car">Car</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Beauty/Clothes">Beauty/Clothes</option>
+                <option value="House">House</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+              </optgroup>
+              <optgroup label="Monthly Envelopes">
+                <option value="Teaching">Teaching</option>
+                <option value="School">School</option>
+                <option value="Travel">Travel</option>
+                <option value="Body/Health">Body/Health</option>
+                <option value="Christmas/Gifts">Christmas/Gifts</option>
+                <option value="Rent">Rent</option>
+                <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
+                <option value="Phones">Phones</option>
+                <option value="Internet">Internet</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Interest Charge">Interest Charge</option>
+                <option value="Cash">Cash</option>
+                <option value="USAA Debt Loan">USAA Debt Loan</option>
+              </optgroup>
             </select>
           </div>
+
           <div class="form-group">
             <label>Total Amount ($)</label>
             <input type="number" step="0.01" id="tx-amount" placeholder="e.g. 45.20" required>
           </div>
+
           <div class="form-group">
-            <label>Split Details (Optional)</label>
-            <input type="text" id="tx-splits" placeholder="e.g. Groceries|-30.00||House|-15.20">
+            <label>Notes (Optional)</label>
+            <input type="text" id="tx-notes" placeholder="e.g. Weekly trip, oil change">
           </div>
-          <button type="submit" class="btn" id="btn-save">Append to Google Sheet</button>
+
+          <button type="submit" class="btn" id="btn-save">Log to Google Sheet</button>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- Bottom App Navigation Dock -->
+  <!-- Bottom Navigation Dock -->
   <div class="nav-dock">
     <button class="nav-item active" onclick="switchNav('dashboard', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
@@ -253,7 +366,7 @@
     </button>
     <button class="nav-item" onclick="switchNav('bills', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-      Bills by Account
+      Monthly Bills
     </button>
     <button class="nav-item" onclick="switchNav('log', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
@@ -263,38 +376,57 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcji2U6WNFANj6miEgsuG4bGHZf8xJb2LctDtMVE6qMlls1D-iURCJhmZfbu6z_v_s/exec";
+    const LIFESTYLE = ["Groceries", "Food", "Car", "Entertainment", "Beauty/Clothes", "House", "Miscellaneous"];
+    let rawEnvelopes = [];
+    let currentFilter = 'lifestyle';
+    let isSplitMode = false;
 
-    const VENDOR_MAP = {
-      "shoppette": "Car",
-      "valero": "Car",
-      "casey": "Car",
-      "integrity": "Rent",
-      "evergy": "Utilities",
-      "american water": "Utilities",
-      "warrensburg sewer": "Utilities",
-      "socket": "Utilities",
-      "google fi": "Utilities",
-      "netflix": "Streaming/Subscriptions",
-      "spotify": "Streaming/Subscriptions",
-      "nintendo": "Streaming/Subscriptions",
-      "apple": "Streaming/Subscriptions"
-    };
+    function setFilter(type) {
+      currentFilter = type;
+      document.getElementById('f-life').classList.toggle('active', type === 'lifestyle');
+      document.getElementById('f-all').classList.toggle('active', type === 'all');
+      renderDashboard();
+    }
 
-    function autoMatchEnvelope(payeeText) {
-      const lower = payeeText.toLowerCase();
-      for (const [key, env] of Object.entries(VENDOR_MAP)) {
-        if (lower.includes(key)) {
-          document.getElementById('tx-envelope').value = env;
-          break;
-        }
+    function toggleSplitMode() {
+      isSplitMode = !isSplitMode;
+      document.getElementById('split-fields').style.display = isSplitMode ? 'block' : 'none';
+      document.getElementById('single-envelope-group').style.display = isSplitMode ? 'none' : 'block';
+      document.getElementById('split-toggle-text').innerText = isSplitMode ? "✕ Cancel Split (Single Envelope Mode)" : "+ Split Between 2 Envelopes (e.g. Groceries + House)";
+      document.getElementById('split-arrow').innerText = isSplitMode ? "▲" : "▼";
+      if (!isSplitMode) document.getElementById('tx-amount').readOnly = false;
+    }
+
+    function updateTotalFromSplit() {
+      const a1 = parseFloat(document.getElementById('split-amt-1').value) || 0;
+      const a2 = parseFloat(document.getElementById('split-amt-2').value) || 0;
+      if (a1 + a2 > 0) {
+        document.getElementById('tx-amount').value = (a1 + a2).toFixed(2);
+        document.getElementById('tx-amount').readOnly = true;
       }
     }
 
-    function switchNav(viewId, el) {
-      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.getElementById('view-' + viewId).style.display = 'block';
-      el.classList.add('active');
+    function setPayee(payee, env, acct) {
+      document.getElementById('tx-payee').value = payee;
+      document.getElementById('tx-envelope').value = env;
+      document.getElementById('tx-account').value = acct;
+    }
+
+    function autoMatchEnvelope(text) {
+      const lower = text.toLowerCase();
+      const map = {
+        "shoppette": "Car", "casey": "Car", "valero": "Car", "oil": "Car",
+        "sonic": "Food", "mcdonald": "Food", "chick-fil-a": "Food", "starbucks": "Food", "cava": "Food",
+        "commissary": "Groceries", "aldi": "Groceries", "hy-vee": "Groceries",
+        "sephora": "Beauty/Clothes", "ulta": "Beauty/Clothes", "torrid": "Beauty/Clothes", "old navy": "Beauty/Clothes",
+        "theater": "Entertainment", "amc": "Entertainment", "b&b": "Entertainment"
+      };
+      for (const [k, v] of Object.entries(map)) {
+        if (lower.includes(k)) {
+          document.getElementById('tx-envelope').value = v;
+          break;
+        }
+      }
     }
 
     async function fetchSheetData() {
@@ -306,92 +438,144 @@
       try {
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
-        renderDashboard(data);
+        rawEnvelopes = data.envelopes || [];
+        renderDashboard();
         dot.classList.remove('syncing');
         status.innerText = "Google Sheet Live";
       } catch (err) {
-        console.error("Fetch error:", err);
         dot.classList.remove('syncing');
         status.innerText = "Sync Error";
       }
     }
 
-    function renderDashboard(data) {
-      if (!data || !data.envelopes) return;
+    function renderDashboard() {
       const container = document.getElementById('envelopes-container');
       container.innerHTML = "";
+      const daysLeft = 23; // Days remaining in November
 
-      let totalSpent = 0;
-      let totalTarget = 0;
+      let totalVarRemaining = 0;
 
-      data.envelopes.forEach(env => {
+      rawEnvelopes.forEach(env => {
+        if (!env.category || env.category.toLowerCase() === 'total') return;
+        const isLife = LIFESTYLE.includes(env.category);
+
         const spent = Math.abs(parseFloat(env.spent) || 0);
         const target = parseFloat(env.target) || 0;
         const remaining = target - spent;
-        const pct = target > 0 ? Math.min(100, Math.round((spent / target) * 100)) : 0;
-        
-        totalSpent += spent;
-        totalTarget += target;
+        const pct = target > 0 ? Math.min(100, Math.round((remaining / target) * 100)) : 0;
+        const dailyBurn = remaining > 0 ? (remaining / daysLeft).toFixed(2) : "0.00";
+
+        if (isLife) {
+          totalVarRemaining += Math.max(0, remaining);
+        }
+
+        if (currentFilter === 'lifestyle' && !isLife) return;
 
         const isOver = remaining < 0;
-        const barColor = isOver ? 'var(--danger)' : (pct > 85 ? 'var(--warning)' : 'var(--accent)');
+        const barColor = isOver ? 'var(--terracotta)' : (pct < 25 ? 'var(--amber)' : 'var(--emerald)');
 
         const div = document.createElement('div');
-        div.className = 'envelope-item';
+        div.className = 'envelope-row';
         div.innerHTML = `
-          <div class="env-top">
-            <span class="env-name">${env.category}</span>
-            <span class="env-amounts" style="color: ${isOver ? 'var(--danger)' : 'var(--text-muted)'}">
-              $${spent.toFixed(2)} / $${target.toFixed(2)} (${remaining < 0 ? '-' : ''}$${Math.abs(remaining).toFixed(2)})
+          <div class="env-meta">
+            <span class="env-title">${env.category}</span>
+            <span class="env-numbers" style="color: ${isOver ? 'var(--terracotta)' : 'var(--text-muted)'}">
+              $${spent.toFixed(2)} spent of $${target.toFixed(2)} (${remaining < 0 ? '-' : ''}$${Math.abs(remaining).toFixed(2)} left)
             </span>
           </div>
-          <div class="progress-track">
-            <div class="progress-fill" style="width: ${pct}%; background: ${barColor};"></div>
+          <div class="track">
+            <div class="fill" style="width: ${Math.max(0, pct)}%; background: ${barColor};"></div>
+          </div>
+          <div class="env-sub-row">
+            <span style="color: var(--emerald); font-weight: 600;">${remaining > 0 ? `$${dailyBurn}/day daily target` : (isOver ? 'Over budget' : 'Allocated')}</span>
+            <span style="color: var(--text-muted);">${pct}% Left</span>
           </div>
         `;
         container.appendChild(div);
       });
 
-      document.getElementById('kpi-spent').innerText = `-$${totalSpent.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-      document.getElementById('kpi-remaining').innerText = `$${Math.max(0, totalTarget - totalSpent).toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+      document.getElementById('kpi-remaining').innerText = `$${totalVarRemaining.toFixed(2)}`;
+      document.getElementById('kpi-daily').innerHTML = `$${(totalVarRemaining / daysLeft).toFixed(2)}<span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">/day</span>`;
+    }
+
+    function switchNav(viewId, el) {
+      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('view-' + viewId).style.display = 'block';
+      el.classList.add('active');
     }
 
     async function submitTransaction(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-save');
-      btn.innerText = "Posting to Sheet...";
+      btn.innerText = "Posting...";
       btn.disabled = true;
 
-      const payload = {
-        payee: document.getElementById('tx-payee').value.trim(),
-        account: document.getElementById('tx-account').value,
-        envelope: document.getElementById('tx-envelope').value,
-        amount: -Math.abs(parseFloat(document.getElementById('tx-amount').value)),
-        splits: document.getElementById('tx-splits').value.trim(),
-        notes: "Via Aegis Web App"
-      };
+      const payee = document.getElementById('tx-payee').value.trim();
+      const account = document.getElementById('tx-account').value;
+      const baseNote = document.getElementById('tx-notes').value.trim();
 
       try {
-        await fetch(SCRIPT_URL, {
-          method: "POST",
-          mode: "no-cors",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        if (isSplitMode) {
+          const env1 = document.getElementById('split-env-1').value;
+          const amt1 = parseFloat(document.getElementById('split-amt-1').value);
+          const env2 = document.getElementById('split-env-2').value;
+          const amt2 = parseFloat(document.getElementById('split-amt-2').value);
+          const totalAmt = (amt1 + amt2).toFixed(2);
 
-        alert("Transaction recorded to Google Sheet!");
+          // Row 1
+          await fetch(SCRIPT_URL, {
+            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
+              splits: "", notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
+            })
+          });
+
+          // Row 2
+          await fetch(SCRIPT_URL, {
+            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
+              splits: "", notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
+            })
+          });
+
+          showToast("✓ Logged 2 Split Rows to Google Sheet");
+        } else {
+          const envelope = document.getElementById('tx-envelope').value;
+          const amount = -Math.abs(parseFloat(document.getElementById('tx-amount').value));
+
+          await fetch(SCRIPT_URL, {
+            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              payee: payee, account: account, envelope: envelope, amount: amount,
+              splits: "", notes: baseNote || "Via Aegis App"
+            })
+          });
+
+          showToast("✓ Saved to Google Sheet");
+        }
+
         document.getElementById('tx-form').reset();
+        if (isSplitMode) toggleSplitMode();
         switchNav('dashboard', document.querySelectorAll('.nav-item')[0]);
         setTimeout(fetchSheetData, 1200);
       } catch (err) {
         alert("Error posting: " + err);
       } finally {
-        btn.innerText = "Append to Google Sheet";
+        btn.innerText = "Log to Google Sheet";
         btn.disabled = false;
       }
     }
 
-    // Auto-fetch on load
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2600);
+    }
+
     window.addEventListener('DOMContentLoaded', fetchSheetData);
   </script>
 </body>
