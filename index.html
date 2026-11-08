@@ -44,7 +44,7 @@
     .kpi-label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 4px; }
     .kpi-val { font-size: 1.35rem; font-weight: 700; }
 
-    /* Filters */
+    /* Filter Bar */
     .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; }
     .filter-btn {
       background: #1c2b23; border: 1px solid var(--surface-border); color: var(--text-muted);
@@ -52,25 +52,53 @@
     }
     .filter-btn.active { background: var(--emerald); color: #042416; border-color: var(--emerald); }
 
-    /* Envelopes Widget Panel */
+    /* Panels */
     .panel { background: var(--card-bg); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 18px; margin-bottom: 16px; }
     .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--surface-border); }
     .panel-title { font-size: 0.95rem; font-weight: 600; }
 
+    /* Envelopes */
     .envelope-row {
-      display: flex; flex-direction: column; gap: 6px; padding: 12px 0;
-      border-bottom: 1px solid #1a2920;
+      display: flex; flex-direction: column; gap: 6px; padding: 12px 10px;
+      border-bottom: 1px solid #1a2920; border-radius: var(--radius-md);
+      cursor: pointer; transition: background 0.15s;
     }
+    .envelope-row:hover, .envelope-row:active { background: rgba(255, 255, 255, 0.03); }
     .envelope-row:last-child { border-bottom: none; }
     .env-meta { display: flex; justify-content: space-between; align-items: center; }
-    .env-title { font-weight: 600; font-size: 0.9rem; }
+    .env-title { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; }
+    .env-title::after { content: "›"; color: var(--text-muted); font-size: 1.1rem; }
     .env-numbers { font-size: 0.82rem; }
     .env-sub-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; }
 
     .track { width: 100%; height: 7px; background: #1a2720; border-radius: 999px; overflow: hidden; }
     .fill { height: 100%; border-radius: 999px; transition: width 0.3s; }
 
-    /* Fast Entry Form */
+    /* Accounts View */
+    .acct-card { background: #141f19; border: 1px solid var(--surface-border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .acct-meta { display: flex; flex-direction: column; gap: 2px; }
+    .acct-title { font-size: 0.92rem; font-weight: 700; }
+    .acct-type { font-size: 0.72rem; color: var(--text-muted); }
+    .acct-amt { font-size: 1.05rem; font-weight: 700; }
+
+    /* Detail View */
+    .detail-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .back-btn {
+      background: #1c2b23; border: 1px solid var(--surface-border); color: #cbd5cb;
+      padding: 8px 14px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 700; cursor: pointer;
+    }
+    .month-header {
+      font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--emerald);
+      padding: 8px 0 4px; font-weight: 700; border-bottom: 1px solid var(--surface-border); margin-top: 14px; margin-bottom: 8px;
+    }
+    .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #1a2920; }
+    .tx-item:last-child { border-bottom: none; }
+    .tx-left { display: flex; flex-direction: column; gap: 2px; }
+    .tx-payee { font-size: 0.88rem; font-weight: 600; }
+    .tx-sub { font-size: 0.72rem; color: var(--text-muted); }
+    .tx-amt { font-size: 0.9rem; font-weight: 700; }
+
+    /* Form & Chips */
     .form-group { margin-bottom: 12px; }
     .form-group label { display: block; font-size: 0.76rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
     input, select {
@@ -79,13 +107,13 @@
     }
     input:focus, select:focus { border-color: var(--emerald); }
 
-    /* Quick Payee Chips */
-    .chip-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 10px; }
+    /* Dynamic Rolling Top 7 Chips */
+    .chip-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
     .chip {
-      background: #19271f; border: 1px solid #283c30; color: #cbd5cb; padding: 5px 10px;
-      border-radius: 999px; font-size: 0.75rem; white-space: nowrap; cursor: pointer;
+      background: #19271f; border: 1px solid #283c30; color: #cbd5cb; padding: 6px 12px;
+      border-radius: 999px; font-size: 0.78rem; white-space: nowrap; cursor: pointer; font-weight: 600;
     }
-    .chip:hover { background: #23372c; color: #fff; }
+    .chip:hover { background: #23372c; color: #fff; border-color: var(--emerald); }
 
     .btn {
       width: 100%; background: var(--emerald); color: #042416; border: none;
@@ -106,7 +134,7 @@
     .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #1a2720; font-size: 0.85rem; }
     .bill-item:last-child { border-bottom: none; }
 
-    /* Bottom Dock */
+    /* Bottom Navigation Dock */
     .nav-dock {
       position: fixed; bottom: 0; left: 0; right: 0; height: 68px;
       background: rgba(12, 18, 15, 0.95); backdrop-filter: blur(16px);
@@ -148,11 +176,11 @@
       <div class="kpi-grid">
         <div class="kpi-card featured">
           <div class="kpi-label">Safe to Spend Per Day</div>
-          <div class="kpi-val" id="kpi-daily" style="color: var(--emerald);">$63.60<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">/day</span></div>
+          <div class="kpi-val" id="kpi-daily" style="color: var(--emerald);">$0.00<span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);">/day</span></div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Remaining to Spend</div>
-          <div class="kpi-val" id="kpi-remaining">$1,462.76</div>
+          <div class="kpi-val" id="kpi-remaining">$0.00</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Days Left</div>
@@ -168,7 +196,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title" id="panel-title">Active Envelopes</span>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">November 2026</span>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">Tap any envelope for history</span>
         </div>
         <div id="envelopes-container">
           <p style="color: var(--text-muted); font-size: 0.85rem;">Connecting to Google Sheet...</p>
@@ -176,7 +204,64 @@
       </div>
     </div>
 
-    <!-- VIEW 2: MONTHLY BILLS -->
+    <!-- VIEW 2: ENVELOPE DETAIL / HISTORY -->
+    <div id="view-detail" class="view-panel" style="display: none;">
+      <div class="detail-nav">
+        <button class="back-btn" onclick="closeEnvelopeDetail()">← Back to Dashboard</button>
+        <h2 style="font-size: 1.1rem; font-weight: 700;" id="detail-env-title">Envelope Details</h2>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card featured">
+          <div class="kpi-label">Remaining Balance</div>
+          <div class="kpi-val" id="detail-remaining" style="color: var(--emerald);">$0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Monthly Target</div>
+          <div class="kpi-val" id="detail-target">$0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">This Month Spent</div>
+          <div class="kpi-val" id="detail-spent" style="color: var(--terracotta);">$0.00</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Transaction History</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Current & Previous Month</span>
+        </div>
+        <div id="detail-tx-container">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Loading transactions...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: ACCOUNT BALANCES -->
+    <div id="view-accounts" class="view-panel" style="display: none;">
+      <div class="kpi-grid">
+        <div class="kpi-card featured">
+          <div class="kpi-label">USAA Checking Float</div>
+          <div class="kpi-val" id="kpi-checking-float" style="color: var(--emerald);">$0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Reserve Savings</div>
+          <div class="kpi-val" id="kpi-savings">$0.00</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Master Account Balances</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">From Google Sheet</span>
+        </div>
+        <div id="accounts-container">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Connecting to Google Sheet...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: MONTHLY BILLS -->
     <div id="view-bills" class="view-panel" style="display: none;">
       <div class="kpi-grid">
         <div class="kpi-card featured">
@@ -231,28 +316,31 @@
       </div>
     </div>
 
-    <!-- VIEW 3: FAST EXPENSE ENTRY -->
+    <!-- VIEW 5: FAST EXPENSE ENTRY -->
     <div id="view-log" class="view-panel" style="display: none;">
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Fast Expense Entry</span>
+          <span style="font-size:0.72rem; color:var(--text-muted);">Rolling 1-Year Top Payees</span>
         </div>
 
-        <label style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; display:block;">Quick-Select Payee:</label>
-        <div class="chip-scroll">
-          <div class="chip" onclick="setPayee('Walmart', 'Groceries', 'Chase')">🛒 Walmart</div>
-          <div class="chip" onclick="setPayee('Target', 'Groceries', 'Chase')">🎯 Target</div>
-          <div class="chip" onclick="setPayee('Shoppette', 'Car', 'Chase')">⛽ Shoppette</div>
+        <!-- DYNAMIC TOP 7 PAYEES CONTAINER -->
+        <label style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; display:block;">Top 7 Frequent Spots (Auto-Calculated):</label>
+        <div class="chip-scroll" id="dynamic-chips">
+          <!-- Populated automatically on load -->
+          <div class="chip" onclick="setPayee('Walmart', 'Groceries', 'USAA Credit Card')">🛒 Walmart</div>
+          <div class="chip" onclick="setPayee('Amazon', 'Miscellaneous', 'Chase')">📦 Amazon</div>
+          <div class="chip" onclick="setPayee('B&B Theaters', 'Entertainment', 'USAA Credit Card')">🍿 B&B Theaters</div>
+          <div class="chip" onclick="setPayee('Aldi', 'Groceries', 'Chase')">🥦 Aldi</div>
+          <div class="chip" onclick="setPayee('Caseys', 'Car', 'Chase')">⛽ Casey's</div>
+          <div class="chip" onclick="setPayee('McDonald\'s', 'Food', 'Chase')">🍟 McDonald's</div>
           <div class="chip" onclick="setPayee('Commissary', 'Groceries', 'USAA Credit Card')">🥩 Commissary</div>
-          <div class="chip" onclick="setPayee('Amazon', 'Miscellaneous', 'USAA Credit Card')">📦 Amazon</div>
-          <div class="chip" onclick="setPayee('Sonic', 'Food', 'Chase')">🍔 Sonic</div>
-          <div class="chip" onclick="setPayee('Chick-Fil-A', 'Food', 'Chase')">🍗 Chick-Fil-A</div>
         </div>
 
         <form id="tx-form" onsubmit="submitTransaction(event)">
           <div class="form-group">
             <label>Payee / Vendor</label>
-            <input type="text" id="tx-payee" placeholder="e.g. Target, Shoppette, Sonic" required oninput="autoMatchEnvelope(this.value)">
+            <input type="text" id="tx-payee" placeholder="e.g. Walmart, Shoppette, Target" required oninput="autoMatchEnvelope(this.value)">
           </div>
           <div class="form-group">
             <label>Payment Account</label>
@@ -310,7 +398,7 @@
             </div>
           </div>
 
-          <!-- SINGLE ENVELOPE INPUT (Hidden in split mode) -->
+          <!-- SINGLE ENVELOPE INPUT -->
           <div class="form-group" id="single-envelope-group">
             <label>Category Envelope</label>
             <select id="tx-envelope">
@@ -349,7 +437,7 @@
 
           <div class="form-group">
             <label>Notes (Optional)</label>
-            <input type="text" id="tx-notes" placeholder="e.g. Weekly trip, oil change">
+            <input type="text" id="tx-notes" placeholder="e.g. Weekly stock up, fuel">
           </div>
 
           <button type="submit" class="btn" id="btn-save">Log to Google Sheet</button>
@@ -362,15 +450,19 @@
   <div class="nav-dock">
     <button class="nav-item active" onclick="switchNav('dashboard', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-      Dashboard
+      Envelopes
+    </button>
+    <button class="nav-item" onclick="switchNav('accounts', this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
+      Accounts
     </button>
     <button class="nav-item" onclick="switchNav('bills', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-      Monthly Bills
+      Bills
     </button>
     <button class="nav-item" onclick="switchNav('log', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-      Log Expense
+      Log Spend
     </button>
   </div>
 
@@ -378,6 +470,8 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcji2U6WNFANj6miEgsuG4bGHZf8xJb2LctDtMVE6qMlls1D-iURCJhmZfbu6z_v_s/exec";
     const LIFESTYLE = ["Groceries", "Food", "Car", "Entertainment", "Beauty/Clothes", "House", "Miscellaneous"];
     let rawEnvelopes = [];
+    let rawAccounts = [];
+    let rawTransactions = [];
     let currentFilter = 'lifestyle';
     let isSplitMode = false;
 
@@ -408,8 +502,8 @@
 
     function setPayee(payee, env, acct) {
       document.getElementById('tx-payee').value = payee;
-      document.getElementById('tx-envelope').value = env;
-      document.getElementById('tx-account').value = acct;
+      if (env) document.getElementById('tx-envelope').value = env;
+      if (acct) document.getElementById('tx-account').value = acct;
     }
 
     function autoMatchEnvelope(text) {
@@ -439,7 +533,11 @@
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
         rawEnvelopes = data.envelopes || [];
+        rawAccounts = data.accounts || [];
+        rawTransactions = data.transactions || [];
         renderDashboard();
+        renderAccounts();
+        renderTopPayees();
         dot.classList.remove('syncing');
         status.innerText = "Google Sheet Live";
       } catch (err) {
@@ -451,7 +549,7 @@
     function renderDashboard() {
       const container = document.getElementById('envelopes-container');
       container.innerHTML = "";
-      const daysLeft = 23; // Days remaining in November
+      const daysLeft = 23;
 
       let totalVarRemaining = 0;
 
@@ -476,6 +574,7 @@
 
         const div = document.createElement('div');
         div.className = 'envelope-row';
+        div.onclick = () => openEnvelopeDetail(env.category, target, spent, remaining);
         div.innerHTML = `
           <div class="env-meta">
             <span class="env-title">${env.category}</span>
@@ -496,6 +595,189 @@
 
       document.getElementById('kpi-remaining').innerText = `$${totalVarRemaining.toFixed(2)}`;
       document.getElementById('kpi-daily').innerHTML = `$${(totalVarRemaining / daysLeft).toFixed(2)}<span style="font-size:0.75rem; font-weight:normal; color:var(--text-muted);">/day</span>`;
+    }
+
+    function renderAccounts() {
+      const container = document.getElementById('accounts-container');
+      container.innerHTML = "";
+
+      let checkingBal = 0;
+      let savingsBal = 0;
+
+      rawAccounts.forEach(acct => {
+        const bal = parseFloat(acct.balance) || 0;
+        if (acct.name.includes("USAA Checking")) checkingBal = bal;
+        if (acct.name.includes("USAA Savings")) savingsBal = bal;
+
+        const isNeg = bal < 0;
+        const div = document.createElement('div');
+        div.className = 'acct-card';
+        div.innerHTML = `
+          <div class="acct-meta">
+            <span class="acct-title">${acct.name}</span>
+            <span class="acct-type">${acct.type || 'Standard Account'}</span>
+          </div>
+          <span class="acct-amt" style="color: ${isNeg ? 'var(--amber)' : 'var(--emerald)'}">
+            ${isNeg ? '-' : ''}$${Math.abs(bal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+          </span>
+        `;
+        container.appendChild(div);
+      });
+
+      document.getElementById('kpi-checking-float').innerText = `$${checkingBal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+      document.getElementById('kpi-savings').innerText = `$${savingsBal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    }
+
+    /* DYNAMIC TOP 7 PAYEES FROM REAL 1-YEAR ROLLING DATA */
+    function renderTopPayees() {
+      const container = document.getElementById('dynamic-chips');
+      if (!rawTransactions || rawTransactions.length === 0) return;
+
+      const ignore = [
+        'account transfer', 'fill envelopes', 'air force', 'warrensburg r-iv', 'income',
+        'interest paid', 'atm', 'usaa', 'chase', 'amex payment', 'transferwise', 'savings',
+        'discover', 'pennymac', 'andrea ducke', 'usaa debt loan', 'debt payment', 'envelope transfer'
+      ];
+
+      const counts = {};
+      const envMap = {};
+      const acctMap = {};
+
+      rawTransactions.forEach(t => {
+        const p = t.payee.trim();
+        const pLower = p.toLowerCase();
+        if (!p || ignore.includes(pLower) || pLower.startsWith('updated') || pLower.startsWith('created')) return;
+
+        // Normalization
+        let canon = p;
+        if (/wal[- ]?mart/i.test(p)) canon = 'Walmart';
+        else if (/mcdonald/i.test(p)) canon = "McDonald's";
+        else if (/chick[- ]?fil[- ]?a/i.test(p)) canon = 'Chick-Fil-A';
+        else if (/b&b/i.test(p)) canon = 'B&B Theaters';
+
+        counts[canon] = (counts[canon] || 0) + 1;
+
+        if (!envMap[canon]) envMap[canon] = {};
+        if (t.envelope) envMap[canon][t.envelope] = (envMap[canon][t.envelope] || 0) + 1;
+
+        if (!acctMap[canon]) acctMap[canon] = {};
+        if (t.account) acctMap[canon][t.account] = (acctMap[canon][t.account] || 0) + 1;
+      });
+
+      // Sort and take top 7
+      const top7 = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 7);
+      if (top7.length === 0) return;
+
+      container.innerHTML = "";
+
+      const emojiMap = {
+        "Walmart": "🛒", "Amazon": "📦", "B&B Theaters": "🍿", "Aldi": "🥦",
+        "Caseys": "⛽", "Casey's": "⛽", "McDonald's": "🍟", "Commissary": "🥩",
+        "Shoppette": "⛽", "Target": "🎯", "Sonic": "🍔", "Chick-Fil-A": "🍗"
+      };
+
+      top7.forEach(payee => {
+        // Find most common envelope
+        let bestEnv = "Groceries";
+        let bestEnvCount = 0;
+        if (envMap[payee]) {
+          for (const [env, c] of Object.entries(envMap[payee])) {
+            if (c > bestEnvCount) { bestEnv = env; bestEnvCount = c; }
+          }
+        }
+
+        // Find most common account
+        let bestAcct = "Chase";
+        let bestAcctCount = 0;
+        if (acctMap[payee]) {
+          for (const [acct, c] of Object.entries(acctMap[payee])) {
+            if (c > bestAcctCount) { bestAcct = acct; bestAcctCount = c; }
+          }
+        }
+
+        const icon = emojiMap[payee] || "🏷️";
+        const div = document.createElement('div');
+        div.className = 'chip';
+        div.onclick = () => setPayee(payee, bestEnv, bestAcct);
+        div.innerHTML = `${icon} ${payee} <span style="font-size:0.68rem; color:var(--text-muted);">(${counts[payee]})</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    function openEnvelopeDetail(catName, target, spent, remaining) {
+      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+      document.getElementById('view-detail').style.display = 'block';
+
+      document.getElementById('detail-env-title').innerText = catName;
+      document.getElementById('detail-target').innerText = `$${target.toFixed(2)}`;
+      document.getElementById('detail-spent').innerText = `-$${spent.toFixed(2)}`;
+      document.getElementById('detail-remaining').innerText = `$${remaining.toFixed(2)}`;
+      document.getElementById('detail-remaining').style.color = remaining < 0 ? 'var(--terracotta)' : 'var(--emerald)';
+
+      renderEnvelopeTransactions(catName);
+    }
+
+    function closeEnvelopeDetail() {
+      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+      document.getElementById('view-dashboard').style.display = 'block';
+    }
+
+    function renderEnvelopeTransactions(catName) {
+      const container = document.getElementById('detail-tx-container');
+      container.innerHTML = "";
+
+      const matches = rawTransactions.filter(t => t.envelope.toLowerCase() === catName.toLowerCase());
+
+      if (matches.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 12px 0;">No transactions recorded for ${catName} in the last 60 days.</p>`;
+        return;
+      }
+
+      const thisMonth = [];
+      const lastMonth = [];
+
+      const now = new Date();
+      const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      
+      const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const prevYearMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+
+      matches.forEach(t => {
+        const ym = t.date.substring(0, 7);
+        if (ym === currentYearMonth) {
+          thisMonth.push(t);
+        } else if (ym === prevYearMonth) {
+          lastMonth.push(t);
+        }
+      });
+
+      function buildList(list, label) {
+        if (list.length === 0) return;
+        const h = document.createElement('div');
+        h.className = 'month-header';
+        h.innerText = label;
+        container.appendChild(h);
+
+        list.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'tx-item';
+          const amt = parseFloat(item.amount);
+          const isNegative = amt < 0;
+          div.innerHTML = `
+            <div class="tx-left">
+              <span class="tx-payee">${item.payee}</span>
+              <span class="tx-sub">${item.date} • ${item.account}${item.notes ? ' • ' + item.notes : ''}</span>
+            </div>
+            <span class="tx-amt" style="color: ${isNegative ? 'var(--text)' : 'var(--emerald)'}">
+              ${isNegative ? '-' : '+'}$${Math.abs(amt).toFixed(2)}
+            </span>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      buildList(thisMonth, `This Month (${currentYearMonth}) — ${thisMonth.length} Transactions`);
+      buildList(lastMonth, `Last Month (${prevYearMonth}) — ${lastMonth.length} Transactions`);
     }
 
     function switchNav(viewId, el) {
@@ -528,7 +810,7 @@
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
-              splits: "", notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
+              notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
             })
           });
 
@@ -537,7 +819,7 @@
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
-              splits: "", notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
+              notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
             })
           });
 
@@ -550,7 +832,7 @@
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               payee: payee, account: account, envelope: envelope, amount: amount,
-              splits: "", notes: baseNote || "Via Aegis App"
+              notes: baseNote || "Via Aegis App"
             })
           });
 
