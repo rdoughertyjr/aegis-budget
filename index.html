@@ -2,7 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#111518" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Aegis" />
+  <link rel="manifest" href="manifest.json" />
   <title>Aegis Budget — Household Money Tracker</title>
   <style>
     :root {
@@ -125,6 +130,41 @@
       letter-spacing: -0.02em;
     }
 
+    /* Payday Float Banner Widget */
+    .payday-banner {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+    .payday-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .payday-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .payday-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .payday-stats {
+      text-align: right;
+    }
+    .payday-val {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--accent-light);
+    }
+
     /* Filter Bar */
     .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; }
     .filter-btn {
@@ -163,7 +203,7 @@
     .panel-title { 
       font-size: 0.88rem; 
       font-weight: 600; 
-      letter-spacing: 0.01em;
+      letter-spacing: 0.01em; 
       color: var(--text);
     }
 
@@ -305,7 +345,7 @@
       color: var(--text-muted); 
       margin-bottom: 5px; 
       font-weight: 600; 
-      text-transform: uppercase;
+      text-transform: uppercase; 
       letter-spacing: 0.04em;
     }
     input, select {
@@ -384,14 +424,8 @@
       font-size: 0.82rem; 
     }
     .bill-item:last-child { border-bottom: none; }
-    .bill-item.cleared {
-      opacity: 0.65;
-    }
-    .bill-right {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .bill-item.cleared { opacity: 0.65; }
+    .bill-right { display: flex; align-items: center; gap: 8px; }
     .tag-auto { 
       background: rgba(46, 125, 93, 0.2); 
       color: var(--accent-light); 
@@ -434,14 +468,7 @@
       font-weight: 600;
       cursor: pointer;
     }
-    .btn-manual-pay:hover {
-      background: #b91c1c;
-    }
-    .btn-manual-pay:disabled {
-      background: var(--surface-border);
-      color: var(--text-dim);
-      cursor: default;
-    }
+    .btn-manual-pay:hover { background: #b91c1c; }
 
     /* Bottom Navigation Dock */
     .nav-dock {
@@ -476,9 +503,7 @@
       color: var(--text); 
       font-weight: 600; 
     }
-    .nav-item.active svg {
-      stroke: var(--accent-light);
-    }
+    .nav-item.active svg { stroke: var(--accent-light); }
     .nav-item svg { width: 19px; height: 19px; }
 
     #toast {
@@ -516,6 +541,17 @@
   <div class="container">
     <!-- VIEW 1: ENVELOPES (DASHBOARD) -->
     <div id="view-dashboard" class="view-panel">
+      <div class="payday-banner" id="payday-widget">
+        <div class="payday-meta">
+          <span class="payday-title" id="payday-next-label">Next Deposit: Calculating...</span>
+          <span class="payday-sub" id="payday-sub-label">USAA Checking Drafts Pending: $0.00</span>
+        </div>
+        <div class="payday-stats">
+          <div class="payday-val" id="payday-floor-val">$0.00</div>
+          <span style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase;">Checking Floor</span>
+        </div>
+      </div>
+
       <div class="kpi-grid">
         <div class="kpi-card featured">
           <div class="kpi-label">Safe to Spend Per Day</div>
@@ -526,8 +562,8 @@
           <div class="kpi-val" id="kpi-remaining">$0.00</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">Days Left</div>
-          <div class="kpi-val" id="kpi-days">23</div>
+          <div class="kpi-label">Days in Cycle</div>
+          <div class="kpi-val" id="kpi-days">--</div>
         </div>
       </div>
 
@@ -720,15 +756,15 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Fast Expense Entry</span>
-          <span style="font-size:0.74rem; color:var(--text-muted);">Frequent Spots</span>
+          <span style="font-size:0.74rem; color:var(--text-muted);" id="offline-status-indicator">Frequent Spots</span>
         </div>
 
         <label style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px; display:block; font-weight:600; text-transform:uppercase;">Quick Select:</label>
         <div class="chip-scroll" id="dynamic-chips">
           <div class="chip" onclick="setPayee('Walmart', 'Groceries', 'USAA Credit Card')">Walmart</div>
           <div class="chip" onclick="setPayee('Amazon', 'Miscellaneous', 'Chase')">Amazon</div>
-          <div class="chip" onclick="setPayee('B&B Theaters', 'Entertainment', 'USAA Credit Card')">B&B Theaters</div>
-          <div class="chip" onclick="setPayee('Aldi', 'Groceries', 'Chase')">Aldi</div>
+          <div class="chip" onclick="setPayee('B&B Theaters', 'Entertainment', 'Chase')">B&B Theaters</div>
+          <div class="chip" onclick="setPayee('Aldi', 'Groceries', 'USAA Credit Card')">Aldi</div>
           <div class="chip" onclick="setPayee('Caseys', 'Car', 'Chase')">Casey's</div>
           <div class="chip" onclick="setPayee('McDonald\'s', 'Food', 'Chase')">McDonald's</div>
           <div class="chip" onclick="setPayee('Commissary', 'Groceries', 'USAA Credit Card')">Commissary</div>
@@ -741,11 +777,43 @@
           </div>
 
           <div class="form-group">
+            <label>Category Envelope</label>
+            <select id="tx-envelope" onchange="onEnvelopeSelected(this.value)">
+              <optgroup label="Daily Living">
+                <option value="Groceries">Groceries</option>
+                <option value="Food">Food (Dining Out)</option>
+                <option value="Car">Car</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Beauty/Clothes">Beauty/Clothes</option>
+                <option value="House">House</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+              </optgroup>
+              <optgroup label="Monthly Envelopes">
+                <option value="Teaching">Teaching</option>
+                <option value="School">School</option>
+                <option value="Travel">Travel</option>
+                <option value="Body/Health">Body/Health</option>
+                <option value="Christmas/Gifts">Christmas/Gifts</option>
+                <option value="Rent">Rent</option>
+                <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
+                <option value="Phones">Phones</option>
+                <option value="Internet">Internet</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Interest Charge">Interest Charge</option>
+                <option value="Cash">Cash</option>
+                <option value="USAA Debt Loan">USAA Debt Loan</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label>Payee / Vendor</label>
             <input type="text" id="tx-payee" placeholder="e.g. Walmart, Shoppette, Target" required oninput="autoMatchEnvelope(this.value)">
           </div>
+
           <div class="form-group">
-            <label>Payment Account</label>
+            <label>Payment Account (Auto-Selected)</label>
             <select id="tx-account">
               <option value="Chase">Chase</option>
               <option value="USAA Credit Card">USAA Credit Card</option>
@@ -753,6 +821,7 @@
               <option value="American Express">American Express</option>
               <option value="Discover">Discover</option>
               <option value="Vantage West Credit Card">Vantage West Credit Card</option>
+              <option value="USAA Savings">USAA Savings</option>
             </select>
           </div>
 
@@ -801,38 +870,6 @@
             </div>
           </div>
 
-          <!-- SINGLE ENVELOPE INPUT -->
-          <div class="form-group" id="single-envelope-group">
-            <label>Category Envelope</label>
-            <select id="tx-envelope">
-              <optgroup label="Daily Living">
-                <option value="Groceries">Groceries</option>
-                <option value="Food">Food (Dining Out)</option>
-                <option value="Car">Car</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Beauty/Clothes">Beauty/Clothes</option>
-                <option value="House">House</option>
-                <option value="Miscellaneous">Miscellaneous</option>
-              </optgroup>
-              <optgroup label="Monthly Envelopes">
-                <option value="Teaching">Teaching</option>
-                <option value="School">School</option>
-                <option value="Travel">Travel</option>
-                <option value="Body/Health">Body/Health</option>
-                <option value="Christmas/Gifts">Christmas/Gifts</option>
-                <option value="Rent">Rent</option>
-                <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
-                <option value="Phones">Phones</option>
-                <option value="Internet">Internet</option>
-                <option value="Insurance">Insurance</option>
-                <option value="Utilities">Utilities</option>
-                <option value="Interest Charge">Interest Charge</option>
-                <option value="Cash">Cash</option>
-                <option value="USAA Debt Loan">USAA Debt Loan</option>
-              </optgroup>
-            </select>
-          </div>
-
           <div class="form-group">
             <label>Total Amount ($)</label>
             <input type="number" step="0.01" id="tx-amount" placeholder="e.g. 45.20" required>
@@ -877,7 +914,7 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcji2U6WNFANj6miEgsuG4bGHZf8xJb2LctDtMVE6qMlls1D-iURCJhmZfbu6z_v_s/exec";
     const LIFESTYLE = ["Groceries", "Food", "Car", "Entertainment", "Beauty/Clothes", "House", "Miscellaneous"];
     
-    // Master Scheduled Bills Definition (Matches Monthly Bills by Account Tab)
+    // Master Scheduled Bills Definition
     const BILL_GROUPS = [
       {
         account: "USAA Checking (Direct ACH)",
@@ -940,6 +977,31 @@
       { month: 12, day: 1,  payee: "Grammarly Annual", cost: 144.00 }
     ];
 
+    // DETERMINISTIC CATEGORY AUTO-ROUTING MATRIX
+    const ENVELOPE_ACCOUNT_ROUTING = {
+      "Food": "Chase",
+      "Car": "Chase",
+      "Entertainment": "Chase",
+      "Teaching": "Chase",
+      "School": "Chase",
+      "Groceries": "USAA Credit Card",
+      "House": "USAA Credit Card",
+      "Beauty/Clothes": "USAA Credit Card",
+      "Miscellaneous": "USAA Credit Card",
+      "Body/Health": "USAA Credit Card",
+      "Phones": "USAA Credit Card",
+      "Internet": "USAA Credit Card",
+      "Rent": "USAA Checking",
+      "USAA Debt Loan": "USAA Checking",
+      "Insurance": "USAA Checking",
+      "Cash": "USAA Checking",
+      "Travel": "Chase",
+      "Christmas/Gifts": "Chase",
+      "Streaming/Subscriptions": "Chase",
+      "Utilities": "Chase",
+      "Interest Charge": "Chase"
+    };
+
     let rawEnvelopes = [];
     let rawAccounts = [];
     let rawTransactions = [];
@@ -967,7 +1029,6 @@
     function toggleSplitMode() {
       isSplitMode = !isSplitMode;
       document.getElementById('split-fields').style.display = isSplitMode ? 'block' : 'none';
-      document.getElementById('single-envelope-group').style.display = isSplitMode ? 'none' : 'block';
       document.getElementById('split-toggle-text').innerText = isSplitMode ? "✕ Cancel Split" : "+ Split Between 2 Envelopes";
       document.getElementById('split-arrow').innerText = isSplitMode ? "▲" : "▼";
       if (!isSplitMode) document.getElementById('tx-amount').readOnly = false;
@@ -984,8 +1045,21 @@
 
     function setPayee(payee, env, acct) {
       document.getElementById('tx-payee').value = payee;
-      if (env) document.getElementById('tx-envelope').value = env;
-      if (acct) document.getElementById('tx-account').value = acct;
+      if (env) {
+        document.getElementById('tx-envelope').value = env;
+        onEnvelopeSelected(env);
+      }
+      if (acct) {
+        document.getElementById('tx-account').value = acct;
+      }
+    }
+
+    /* STEP 4: CATEGORY AUTO-ROUTING */
+    function onEnvelopeSelected(envName) {
+      const acctDropdown = document.getElementById('tx-account');
+      if (ENVELOPE_ACCOUNT_ROUTING[envName]) {
+        acctDropdown.value = ENVELOPE_ACCOUNT_ROUTING[envName];
+      }
     }
 
     function autoMatchEnvelope(text) {
@@ -995,11 +1069,13 @@
         "sonic": "Food", "mcdonald": "Food", "chick-fil-a": "Food", "starbucks": "Food", "cava": "Food",
         "commissary": "Groceries", "aldi": "Groceries", "hy-vee": "Groceries",
         "sephora": "Beauty/Clothes", "ulta": "Beauty/Clothes", "torrid": "Beauty/Clothes", "old navy": "Beauty/Clothes",
-        "theater": "Entertainment", "amc": "Entertainment", "b&b": "Entertainment"
+        "theater": "Entertainment", "amc": "Entertainment", "b&b": "Entertainment",
+        "integrity": "Rent", "evergy": "Utilities", "socket": "Internet", "water": "Utilities"
       };
       for (const [k, v] of Object.entries(map)) {
         if (lower.includes(k)) {
           document.getElementById('tx-envelope').value = v;
+          onEnvelopeSelected(v);
           break;
         }
       }
@@ -1011,6 +1087,9 @@
       dot.classList.add('syncing');
       status.innerText = "Syncing...";
 
+      // Attempt to drain offline queue first
+      await flushOfflineQueue();
+
       try {
         const res = await fetch(SCRIPT_URL);
         const data = await res.json();
@@ -1019,20 +1098,91 @@
         rawTransactions = data.transactions || [];
         renderDashboard();
         renderAccounts();
+        renderPaydayPacing();
         renderBillsChecklist();
         applyTxFilters();
         dot.classList.remove('syncing');
         status.innerText = "Google Sheet Live";
       } catch (err) {
         dot.classList.remove('syncing');
-        status.innerText = "Sync Error";
+        status.innerText = "Offline Mode";
+        document.getElementById('offline-status-indicator').innerText = "Working Offline";
       }
+    }
+
+    function renderPaydayPacing() {
+      const now = new Date();
+      const todayDate = now.getDate();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+      let nextPayDate = 15;
+      let nextPaySource = "Air Force (Mid-Month)";
+      let nextPayAmount = 2437.00;
+      let daysUntilPay = 0;
+
+      if (todayDate < 15) {
+        nextPayDate = 15;
+        nextPaySource = "Air Force (Mid-Month)";
+        nextPayAmount = 2437.00;
+        daysUntilPay = 15 - todayDate;
+      } else if (todayDate < 20) {
+        nextPayDate = 20;
+        nextPaySource = "Warrensburg School District";
+        nextPayAmount = 2939.00;
+        daysUntilPay = 20 - todayDate;
+      } else {
+        nextPayDate = 1;
+        nextPaySource = "Air Force (1st of Month)";
+        nextPayAmount = 4437.00;
+        daysUntilPay = (daysInCurrentMonth - todayDate) + 1;
+      }
+
+      let checkingBalance = 0;
+      rawAccounts.forEach(a => {
+        const n = (a.name || "").toLowerCase();
+        if (n.includes("checking") || n.includes("usaa checking")) {
+          checkingBalance = parseFloat(a.balance) || 0;
+        }
+      });
+
+      let upcomingCheckingDrafts = 0;
+      const checkingGroup = BILL_GROUPS.find(g => g.type === "checking");
+      if (checkingGroup) {
+        checkingGroup.items.forEach(it => {
+          let isBetween = false;
+          if (todayDate < 15 && it.day >= todayDate && it.day <= 15) isBetween = true;
+          else if (todayDate >= 15 && todayDate < 20 && it.day >= todayDate && it.day <= 20) isBetween = true;
+          else if (todayDate >= 20 && (it.day >= todayDate || it.day === 1)) isBetween = true;
+
+          if (isBetween) {
+            upcomingCheckingDrafts += it.amount;
+          }
+        });
+      }
+
+      const projectedFloor = checkingBalance - upcomingCheckingDrafts;
+      const daysRemainingInMonth = Math.max(1, daysInCurrentMonth - todayDate);
+      document.getElementById('kpi-days').innerText = `${daysRemainingInMonth}d left`;
+
+      document.getElementById('payday-next-label').innerHTML = `Next Deposit: <strong>${daysUntilPay} day${daysUntilPay === 1 ? '' : 's'}</strong> (${nextPaySource} • +$${nextPayAmount.toLocaleString()})`;
+      document.getElementById('payday-sub-label').innerText = `USAA Checking Drafts Pending: $${upcomingCheckingDrafts.toFixed(2)}`;
+      
+      const floorEl = document.getElementById('payday-floor-val');
+      floorEl.innerText = `${projectedFloor < 0 ? '-' : ''}$${Math.abs(projectedFloor).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      floorEl.style.color = projectedFloor < 0 ? 'var(--terracotta)' : (projectedFloor < 500 ? 'var(--amber)' : 'var(--accent-light)');
     }
 
     function renderDashboard() {
       const container = document.getElementById('envelopes-container');
       container.innerHTML = "";
-      const daysLeft = 23;
+      
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const daysInCurrentMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+      const daysLeft = Math.max(1, daysInCurrentMonth - now.getDate());
 
       let totalVarRemaining = 0;
 
@@ -1110,7 +1260,6 @@
       });
     }
 
-    /* DYNAMIC BILLS CHECKLIST & MATCHING (Step 2 Implementation) */
     function renderBillsChecklist() {
       const container = document.getElementById('bills-dynamic-container');
       if (!container) return;
@@ -1123,7 +1272,6 @@
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       document.getElementById('bills-month-tag').innerText = `${monthNames[currentMonth]} ${currentYear} Cycle`;
 
-      // Build active cleared lookup from rawTransactions for this month
       const clearedKeys = {};
       rawTransactions.forEach(t => {
         if (!t.date) return;
@@ -1135,7 +1283,6 @@
             const pKey = (t.payee || "").toLowerCase().trim();
             const aKey = (t.account || "").toLowerCase().trim();
             clearedKeys[pKey + "|" + aKey] = true;
-            // Also store partial payee match
             clearedKeys[pKey] = true;
           }
         }
@@ -1209,7 +1356,6 @@
         container.appendChild(groupDiv);
       });
 
-      // Annual Subscriptions Block
       const annDiv = document.createElement('div');
       annDiv.className = 'bill-group';
       annDiv.innerHTML = `<div class="bill-group-header"><span>Annual Subscriptions Schedule</span><span>$551.98/yr (~$46/mo)</span></div>`;
@@ -1232,7 +1378,6 @@
       document.getElementById('bills-kpi-total').innerText = `$${totalCommitted.toFixed(2)}`;
     }
 
-    /* 1-TAP POST FOR MANUAL BILLS (e.g. American Water) */
     async function payManualBill(payee, env, acct, amt) {
       if (!confirm(`Post ${payee} ($${amt.toFixed(2)}) to Google Sheet now?`)) return;
 
@@ -1245,16 +1390,13 @@
       showToast(`Posting ${payee}...`);
 
       try {
-        await fetch(SCRIPT_URL, {
-          method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            date: dateStr,
-            payee: payee,
-            account: acct,
-            envelope: env,
-            amount: -Math.abs(amt),
-            notes: "Manual Bill Post via Aegis App"
-          })
+        await postPayload({
+          date: dateStr,
+          payee: payee,
+          account: acct,
+          envelope: env,
+          amount: -Math.abs(amt),
+          notes: "Manual Bill Post via Aegis App"
         });
 
         showToast(`✓ Logged ${payee} ($${amt.toFixed(2)})`);
@@ -1421,6 +1563,49 @@
       el.classList.add('active');
     }
 
+    /* STEP 4: OFFLINE QUEUE HELPER */
+    async function postPayload(payload) {
+      if (!navigator.onLine) {
+        enqueueOffline(payload);
+        return;
+      }
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        enqueueOffline(payload);
+      }
+    }
+
+    function enqueueOffline(payload) {
+      const q = JSON.parse(localStorage.getItem('aegis_offline_queue') || '[]');
+      q.push(payload);
+      localStorage.setItem('aegis_offline_queue', JSON.stringify(q));
+      showToast(`⚡ Saved Offline (${q.length} queued)`);
+    }
+
+    async function flushOfflineQueue() {
+      const q = JSON.parse(localStorage.getItem('aegis_offline_queue') || '[]');
+      if (q.length === 0 || !navigator.onLine) return;
+      
+      showToast(`Syncing ${q.length} offline entries...`);
+      while (q.length > 0) {
+        const item = q.shift();
+        try {
+          await fetch(SCRIPT_URL, {
+            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item)
+          });
+        } catch (e) {
+          q.unshift(item);
+          break;
+        }
+      }
+      localStorage.setItem('aegis_offline_queue', JSON.stringify(q));
+    }
+
     async function submitTransaction(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-save');
@@ -1440,20 +1625,14 @@
           const amt2 = parseFloat(document.getElementById('split-amt-2').value);
           const totalAmt = (amt1 + amt2).toFixed(2);
 
-          await fetch(SCRIPT_URL, {
-            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              date: dateVal, payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
-              notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
-            })
+          await postPayload({
+            date: dateVal, payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
+            notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
           });
 
-          await fetch(SCRIPT_URL, {
-            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              date: dateVal, payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
-              notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
-            })
+          await postPayload({
+            date: dateVal, payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
+            notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
           });
 
           showToast("✓ Logged 2 Split Rows to Google Sheet");
@@ -1461,12 +1640,9 @@
           const envelope = document.getElementById('tx-envelope').value;
           const amount = -Math.abs(parseFloat(document.getElementById('tx-amount').value));
 
-          await fetch(SCRIPT_URL, {
-            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              date: dateVal, payee: payee, account: account, envelope: envelope, amount: amount,
-              notes: baseNote || "Via Aegis App"
-            })
+          await postPayload({
+            date: dateVal, payee: payee, account: account, envelope: envelope, amount: amount,
+            notes: baseNote || "Via Aegis App"
           });
 
           showToast("✓ Saved to Google Sheet");
@@ -1474,6 +1650,7 @@
 
         document.getElementById('tx-form').reset();
         initDate();
+        onEnvelopeSelected(document.getElementById('tx-envelope').value);
         if (isSplitMode) toggleSplitMode();
         switchNav('dashboard', document.querySelectorAll('.nav-item')[0]);
         setTimeout(fetchSheetData, 1200);
@@ -1492,8 +1669,10 @@
       setTimeout(() => { t.style.display = 'none'; }, 2400);
     }
 
+    window.addEventListener('online', flushOfflineQueue);
     window.addEventListener('DOMContentLoaded', () => {
       initDate();
+      onEnvelopeSelected(document.getElementById('tx-envelope').value);
       fetchSheetData();
     });
   </script>
