@@ -94,7 +94,7 @@
 
     .container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
-    /* Top KPI Cards (Envelopes Dashboard only) */
+    /* Top KPI Cards */
     .kpi-grid { 
       display: grid; 
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
@@ -379,11 +379,19 @@
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
-      padding: 9px 12px; 
+      padding: 10px 12px; 
       border-bottom: 1px solid rgba(255, 255, 255, 0.03); 
       font-size: 0.82rem; 
     }
     .bill-item:last-child { border-bottom: none; }
+    .bill-item.cleared {
+      opacity: 0.65;
+    }
+    .bill-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .tag-auto { 
       background: rgba(46, 125, 93, 0.2); 
       color: var(--accent-light); 
@@ -391,7 +399,6 @@
       border-radius: 4px; 
       font-size: 0.65rem; 
       font-weight: 600; 
-      margin-left: 6px; 
     }
     .tag-manual { 
       background: rgba(220, 38, 38, 0.18); 
@@ -400,7 +407,40 @@
       border-radius: 4px; 
       font-size: 0.65rem; 
       font-weight: 600; 
-      margin-left: 6px; 
+    }
+    .tag-status-cleared {
+      background: rgba(46, 125, 93, 0.25);
+      color: var(--accent-light);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+    .tag-status-pending {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-weight: 500;
+    }
+    .btn-manual-pay {
+      background: #dc2626;
+      color: #ffffff;
+      border: none;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-manual-pay:hover {
+      background: #b91c1c;
+    }
+    .btn-manual-pay:disabled {
+      background: var(--surface-border);
+      color: var(--text-dim);
+      cursor: default;
     }
 
     /* Bottom Navigation Dock */
@@ -649,169 +689,28 @@
 
     <!-- VIEW 5: ITEMISED MONTHLY BILLS & RECURRING CHARGES -->
     <div id="view-bills" class="view-panel" style="display: none;">
+      <div class="kpi-grid">
+        <div class="kpi-card featured">
+          <div class="kpi-label">Month Bills Cleared</div>
+          <div class="kpi-val" id="bills-kpi-cleared" style="color: var(--accent-light);">$0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Still Scheduled to Draft</div>
+          <div class="kpi-val" id="bills-kpi-pending">$0.00</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Monthly Fixed</div>
+          <div class="kpi-val" id="bills-kpi-total">$5,399.29</div>
+        </div>
+      </div>
+
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Committed Bills by Payment Account</span>
-          <span style="font-size:0.74rem; color:var(--text-muted);">Verified Schedule</span>
+          <span id="bills-month-tag" style="font-size:0.74rem; color:var(--text-muted);">Current Billing Cycle</span>
         </div>
-
-        <!-- USAA CHECKING (DIRECT ACH) -->
-        <div class="bill-group">
-          <div class="bill-group-header">
-            <span>USAA Checking (Direct ACH)</span>
-            <span>$3,638.59/mo</span>
-          </div>
-          <div class="bill-item">
-            <div>
-              <strong>Rent + HOA (Integrity Rentals)</strong>
-              <div style="font-size:0.7rem;color:var(--text-muted);">Due 1st <span class="tag-auto">AutoPay</span></div>
-            </div>
-            <span>$1,577.49</span>
-          </div>
-          <div class="bill-item">
-            <div>
-              <strong>USAA Debt Loan</strong>
-              <div style="font-size:0.7rem;color:var(--text-muted);">Due 1st <span class="tag-auto">AutoPay</span></div>
-            </div>
-            <span>$835.19</span>
-          </div>
-          <div class="bill-item">
-            <div>
-              <strong>USAA Auto & Renters Insurance</strong>
-              <div style="font-size:0.7rem;color:var(--text-muted);">Due 15th <span class="tag-auto">AutoPay</span></div>
-            </div>
-            <span>$183.91</span>
-          </div>
-          <div class="bill-item">
-            <div>
-              <strong>AMEX Payment Plan</strong>
-              <div style="font-size:0.7rem;color:var(--text-muted);">Due 19th <span class="tag-auto">AutoPay</span></div>
-            </div>
-            <span>$1,042.00</span>
-          </div>
-        </div>
-
-        <!-- CHASE FIXED BILLS -->
-        <div class="bill-group">
-          <div class="bill-group-header">
-            <span>Chase Card (Fixed & Utilities)</span>
-            <span>$770.43/mo</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Apple TV</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 3rd <span class="tag-auto">AutoPay</span></div></div>
-            <span>$14.99</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Nintendo Online</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 5th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$3.99</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Evergy (Electricity)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 6th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$143.26</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Canva Pro</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 7th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$15.00</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>SiriusXM Radio</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 11th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$11.99</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Disney+ Streaming</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 13th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$21.49</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Max (HBO)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 16th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$19.65</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Chase Interest (28.24% APR)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 17th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$387.00</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>La Roche (Day/Night Cream)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 20th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$68.82</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>American Water</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 30th <span class="tag-manual">Manual Pay</span></div></div>
-            <span>$84.24</span>
-          </div>
-        </div>
-
-        <!-- USAA CC FIXED BILLS -->
-        <div class="bill-group">
-          <div class="bill-group-header">
-            <span>USAA Credit Card (Fixed Services)</span>
-            <span>$648.55/mo</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Warrensburg Sewer</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 1st <span class="tag-auto">AutoPay</span></div></div>
-            <span>$99.81</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Amazon Prime</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 4th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$8.19</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>OrderlyMeds</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 4th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$149.00</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Storage Unit</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 6th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$108.00</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>USAA CC Interest (9.99% APR)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 12th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$110.52</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Peacock TV</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 15th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$26.99</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Netflix (4K Family)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 22nd <span class="tag-auto">AutoPay</span></div></div>
-            <span>$26.99</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Google Fi (Family Plan)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 28th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$118.89</span>
-          </div>
-        </div>
-
-        <!-- OTHER CARDS & FIXED CHARGES -->
-        <div class="bill-group">
-          <div class="bill-group-header">
-            <span>Other Accounts</span>
-            <span>$341.88/mo</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Discover — Spotify Family</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 28th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$18.99</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>AMEX Interest (9.64% APR)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 25th <span class="tag-auto">AutoPay</span></div></div>
-            <span>$264.25</span>
-          </div>
-          <div class="bill-item">
-            <div><strong>Vantage West CU Interest (14.50% APR)</strong><div style="font-size:0.7rem;color:var(--text-muted);">Due 1st <span class="tag-auto">AutoPay</span></div></div>
-            <span>$58.64</span>
-          </div>
-        </div>
-
-        <!-- ANNUAL / SINKING SUBSCRIPTIONS -->
-        <div class="bill-group">
-          <div class="bill-group-header">
-            <span>Annual Subscriptions Schedule</span>
-            <span>$551.98/yr (~$46/mo)</span>
-          </div>
-          <div class="bill-item"><div><strong>Nintendo Family Annual</strong><div style="font-size:0.7rem;color:var(--text-muted);">March 31</div></div><span>$19.99</span></div>
-          <div class="bill-item"><div><strong>Costco Membership</strong><div style="font-size:0.7rem;color:var(--text-muted);">July 1</div></div><span>$65.00</span></div>
-          <div class="bill-item"><div><strong>Walmart+ Annual</strong><div style="font-size:0.7rem;color:var(--text-muted);">July 10</div></div><span>$98.00</span></div>
-          <div class="bill-item"><div><strong>Paramount+ (via Walmart)</strong><div style="font-size:0.7rem;color:var(--text-muted);">July 18</div></div><span>$64.99</span></div>
-          <div class="bill-item"><div><strong>Google Nest Aware</strong><div style="font-size:0.7rem;color:var(--text-muted);">September 21</div></div><span>$100.00</span></div>
-          <div class="bill-item"><div><strong>Goodbudget Annual</strong><div style="font-size:0.7rem;color:var(--text-muted);">October 16</div></div><span>$60.00</span></div>
-          <div class="bill-item"><div><strong>Grammarly Annual</strong><div style="font-size:0.7rem;color:var(--text-muted);">December 1</div></div><span>$144.00</span></div>
+        <div id="bills-dynamic-container">
+          <p style="color: var(--text-muted); font-size: 0.85rem;">Checking cleared bills...</p>
         </div>
       </div>
     </div>
@@ -977,6 +876,70 @@
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcji2U6WNFANj6miEgsuG4bGHZf8xJb2LctDtMVE6qMlls1D-iURCJhmZfbu6z_v_s/exec";
     const LIFESTYLE = ["Groceries", "Food", "Car", "Entertainment", "Beauty/Clothes", "House", "Miscellaneous"];
+    
+    // Master Scheduled Bills Definition (Matches Monthly Bills by Account Tab)
+    const BILL_GROUPS = [
+      {
+        account: "USAA Checking (Direct ACH)",
+        type: "checking",
+        items: [
+          { day: 1,  payee: "Rent + HOA (Integrity Rentals)", envelope: "Rent", account: "USAA Checking", amount: 1577.49, auto: true },
+          { day: 1,  payee: "USAA Debt Loan", envelope: "USAA Debt Loan", account: "USAA Checking", amount: 835.19, auto: true },
+          { day: 15, payee: "USAA Auto & Renters Insurance", envelope: "Insurance", account: "USAA Checking", amount: 183.91, auto: true },
+          { day: 19, payee: "AMEX Payment Plan", envelope: "Cash", account: "USAA Checking", amount: 1042.00, auto: true }
+        ]
+      },
+      {
+        account: "Chase Card (Fixed & Utilities)",
+        type: "card",
+        items: [
+          { day: 3,  payee: "Apple TV", envelope: "Streaming/Subscriptions", account: "Chase", amount: 14.99, auto: true },
+          { day: 5,  payee: "Nintendo Online", envelope: "Streaming/Subscriptions", account: "Chase", amount: 3.99, auto: true },
+          { day: 6,  payee: "Evergy", envelope: "Utilities", account: "Chase", amount: 143.26, auto: true },
+          { day: 7,  payee: "Canva Pro", envelope: "Teaching", account: "Chase", amount: 15.00, auto: true },
+          { day: 11, payee: "SiriusXM Radio", envelope: "Streaming/Subscriptions", account: "Chase", amount: 11.99, auto: true },
+          { day: 13, payee: "Disney+", envelope: "Streaming/Subscriptions", account: "Chase", amount: 21.49, auto: true },
+          { day: 16, payee: "Max", envelope: "Streaming/Subscriptions", account: "Chase", amount: 19.65, auto: true },
+          { day: 17, payee: "Chase Interest", envelope: "Interest Charge", account: "Chase", amount: 387.00, auto: true },
+          { day: 20, payee: "La Roche", envelope: "Beauty/Clothes", account: "Chase", amount: 68.82, auto: true },
+          { day: 30, payee: "American Water", envelope: "Utilities", account: "Chase", amount: 84.24, auto: false }
+        ]
+      },
+      {
+        account: "USAA Credit Card (Fixed Services)",
+        type: "card",
+        items: [
+          { day: 1,  payee: "Warrensburg Sewer", envelope: "Utilities", account: "USAA Credit Card", amount: 99.81, auto: true },
+          { day: 4,  payee: "Amazon Prime", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", amount: 8.19, auto: true },
+          { day: 4,  payee: "OrderlyMeds", envelope: "Body/Health", account: "USAA Credit Card", amount: 149.00, auto: true },
+          { day: 6,  payee: "Storage Unit", envelope: "House", account: "USAA Credit Card", amount: 108.00, auto: true },
+          { day: 12, payee: "USAA CC Interest", envelope: "Interest Charge", account: "USAA Credit Card", amount: 110.52, auto: true },
+          { day: 15, payee: "Peacock TV", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", amount: 26.99, auto: true },
+          { day: 22, payee: "Netflix", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", amount: 26.99, auto: true },
+          { day: 28, payee: "Google Fi", envelope: "Phones", account: "USAA Credit Card", amount: 118.89, auto: true }
+        ]
+      },
+      {
+        account: "Other Accounts",
+        type: "card",
+        items: [
+          { day: 28, payee: "Spotify", envelope: "Streaming/Subscriptions", account: "Discover", amount: 18.99, auto: true },
+          { day: 25, payee: "AMEX Interest", envelope: "Interest Charge", account: "American Express", amount: 264.25, auto: true },
+          { day: 1,  payee: "VWCU Interest", envelope: "Interest Charge", account: "Vantage West Credit Card", amount: 58.64, auto: true }
+        ]
+      }
+    ];
+
+    const ANNUAL_SUBS = [
+      { month: 3,  day: 31, payee: "Nintendo Family Annual", cost: 19.99 },
+      { month: 7,  day: 1,  payee: "Costco Membership", cost: 65.00 },
+      { month: 7,  day: 10, payee: "Walmart+ Annual", cost: 98.00 },
+      { month: 7,  day: 18, payee: "Paramount+ Annual", cost: 64.99 },
+      { month: 9,  day: 21, payee: "Google Nest Aware", cost: 100.00 },
+      { month: 10, day: 16, payee: "Goodbudget Annual", cost: 60.00 },
+      { month: 12, day: 1,  payee: "Grammarly Annual", cost: 144.00 }
+    ];
+
     let rawEnvelopes = [];
     let rawAccounts = [];
     let rawTransactions = [];
@@ -1056,6 +1019,7 @@
         rawTransactions = data.transactions || [];
         renderDashboard();
         renderAccounts();
+        renderBillsChecklist();
         applyTxFilters();
         dot.classList.remove('syncing');
         status.innerText = "Google Sheet Live";
@@ -1144,6 +1108,160 @@
         `;
         container.appendChild(div);
       });
+    }
+
+    /* DYNAMIC BILLS CHECKLIST & MATCHING (Step 2 Implementation) */
+    function renderBillsChecklist() {
+      const container = document.getElementById('bills-dynamic-container');
+      if (!container) return;
+      container.innerHTML = "";
+
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth();
+      const currentDay = now.getDate();
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      document.getElementById('bills-month-tag').innerText = `${monthNames[currentMonth]} ${currentYear} Cycle`;
+
+      // Build active cleared lookup from rawTransactions for this month
+      const clearedKeys = {};
+      rawTransactions.forEach(t => {
+        if (!t.date) return;
+        const parts = t.date.split('-');
+        if (parts.length === 3) {
+          const yr = parseInt(parts[0], 10);
+          const mo = parseInt(parts[1], 10) - 1;
+          if (yr === currentYear && mo === currentMonth) {
+            const pKey = (t.payee || "").toLowerCase().trim();
+            const aKey = (t.account || "").toLowerCase().trim();
+            clearedKeys[pKey + "|" + aKey] = true;
+            // Also store partial payee match
+            clearedKeys[pKey] = true;
+          }
+        }
+      });
+
+      let totalCommitted = 0;
+      let totalCleared = 0;
+      let totalPending = 0;
+
+      BILL_GROUPS.forEach(grp => {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'bill-group';
+
+        let grpTotal = 0;
+        grp.items.forEach(it => grpTotal += it.amount);
+
+        const headDiv = document.createElement('div');
+        headDiv.className = 'bill-group-header';
+        headDiv.innerHTML = `<span>${grp.account}</span><span>$${grpTotal.toFixed(2)}/mo</span>`;
+        groupDiv.appendChild(headDiv);
+
+        grp.items.forEach(item => {
+          totalCommitted += item.amount;
+          const pLower = item.payee.toLowerCase().trim();
+          const aLower = item.account.toLowerCase().trim();
+
+          const isCleared = clearedKeys[pLower + "|" + aLower] || 
+                            clearedKeys[pLower] || 
+                            (pLower.includes("rent") && clearedKeys["integrity rentals"]) ||
+                            (pLower.includes("water") && clearedKeys["american water"]);
+
+          if (isCleared) {
+            totalCleared += item.amount;
+          } else {
+            totalPending += item.amount;
+          }
+
+          const itemDiv = document.createElement('div');
+          itemDiv.className = `bill-item ${isCleared ? 'cleared' : ''}`;
+
+          let statusBadge = "";
+          if (isCleared) {
+            statusBadge = `<span class="tag-status-cleared">✓ Cleared</span>`;
+          } else if (item.day < currentDay) {
+            statusBadge = `<span class="tag-status-pending" style="color:var(--amber);">Due Day ${item.day}</span>`;
+          } else {
+            statusBadge = `<span class="tag-status-pending">Due Day ${item.day}</span>`;
+          }
+
+          let manualAction = "";
+          if (!item.auto && !isCleared) {
+            manualAction = `<button class="btn-manual-pay" onclick="payManualBill('${item.payee}', '${item.envelope}', '${item.account}', ${item.amount})">Post to Sheet</button>`;
+          }
+
+          itemDiv.innerHTML = `
+            <div>
+              <strong>${item.payee}</strong>
+              <div style="font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:2px;">
+                ${item.auto ? '<span class="tag-auto">AutoPay</span>' : '<span class="tag-manual">Manual Pay</span>'}
+                ${statusBadge}
+              </div>
+            </div>
+            <div class="bill-right">
+              ${manualAction}
+              <span style="font-weight:600;">$${item.amount.toFixed(2)}</span>
+            </div>
+          `;
+          groupDiv.appendChild(itemDiv);
+        });
+
+        container.appendChild(groupDiv);
+      });
+
+      // Annual Subscriptions Block
+      const annDiv = document.createElement('div');
+      annDiv.className = 'bill-group';
+      annDiv.innerHTML = `<div class="bill-group-header"><span>Annual Subscriptions Schedule</span><span>$551.98/yr (~$46/mo)</span></div>`;
+      ANNUAL_SUBS.forEach(ann => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'bill-item';
+        itemDiv.innerHTML = `
+          <div>
+            <strong>${ann.payee}</strong>
+            <div style="font-size:0.7rem;color:var(--text-muted);">${monthNames[ann.month - 1]} ${ann.day}</div>
+          </div>
+          <span style="font-weight:600;">$${ann.cost.toFixed(2)}</span>
+        `;
+        annDiv.appendChild(itemDiv);
+      });
+      container.appendChild(annDiv);
+
+      document.getElementById('bills-kpi-cleared').innerText = `$${totalCleared.toFixed(2)}`;
+      document.getElementById('bills-kpi-pending').innerText = `$${totalPending.toFixed(2)}`;
+      document.getElementById('bills-kpi-total').innerText = `$${totalCommitted.toFixed(2)}`;
+    }
+
+    /* 1-TAP POST FOR MANUAL BILLS (e.g. American Water) */
+    async function payManualBill(payee, env, acct, amt) {
+      if (!confirm(`Post ${payee} ($${amt.toFixed(2)}) to Google Sheet now?`)) return;
+
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+
+      showToast(`Posting ${payee}...`);
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            date: dateStr,
+            payee: payee,
+            account: acct,
+            envelope: env,
+            amount: -Math.abs(amt),
+            notes: "Manual Bill Post via Aegis App"
+          })
+        });
+
+        showToast(`✓ Logged ${payee} ($${amt.toFixed(2)})`);
+        setTimeout(fetchSheetData, 1200);
+      } catch (err) {
+        alert("Error posting manual bill: " + err);
+      }
     }
 
     function applyTxFilters() {
