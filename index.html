@@ -37,7 +37,7 @@
 
     .container { max-width: 900px; margin: 0 auto; padding: 16px; }
 
-    /* Top KPI Cards */
+    /* Top KPI Cards (Envelopes Dashboard only) */
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
     .kpi-card { background: var(--card-bg); border: 1px solid var(--surface-border); border-radius: var(--radius-lg); padding: 14px; }
     .kpi-card.featured { border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08); }
@@ -250,22 +250,14 @@
       </div>
     </div>
 
-    <!-- VIEW 3: DEDICATED FILTERABLE TRANSACTIONS LIST -->
+    <!-- VIEW 3: DEDICATED FILTERABLE TRANSACTIONS LIST (Clean Header, No Top Cards) -->
     <div id="view-transactions" class="view-panel" style="display: none;">
-      <div class="kpi-grid">
-        <div class="kpi-card featured">
-          <div class="kpi-label">Filtered Matches</div>
-          <div class="kpi-val" id="tx-match-count" style="color: var(--emerald);">0</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Total Filtered Sum</div>
-          <div class="kpi-val" id="tx-match-sum">$0.00</div>
-        </div>
-      </div>
-
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">Filter Transactions</span>
+          <div>
+            <span class="panel-title">Transaction History</span>
+            <span id="tx-summary-tag" style="font-size:0.75rem; color:var(--text-muted); margin-left:8px;"></span>
+          </div>
           <button style="background:none; border:none; color:var(--emerald); font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="resetTxFilters()">Reset All</button>
         </div>
 
@@ -321,19 +313,8 @@
       </div>
     </div>
 
-    <!-- VIEW 4: MASTER ACCOUNT BALANCES -->
+    <!-- VIEW 4: MASTER ACCOUNT BALANCES (Clean, No Top Cards) -->
     <div id="view-accounts" class="view-panel" style="display: none;">
-      <div class="kpi-grid">
-        <div class="kpi-card featured">
-          <div class="kpi-label">USAA Checking Float</div>
-          <div class="kpi-val" id="kpi-checking-float" style="color: var(--emerald);">$0.00</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Reserve Savings</div>
-          <div class="kpi-val" id="kpi-savings">$0.00</div>
-        </div>
-      </div>
-
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Master Account Balances</span>
@@ -421,7 +402,6 @@
         </div>
 
         <form id="tx-form" onsubmit="submitTransaction(event)">
-          <!-- DATE PICKER FIELD -->
           <div class="form-group">
             <label>Transaction Date</label>
             <input type="date" id="tx-date" required>
@@ -708,9 +688,6 @@
       if (!container) return;
       container.innerHTML = "";
 
-      let checkingBal = 0;
-      let savingsBal = 0;
-
       if (!rawAccounts || rawAccounts.length === 0) {
         container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 12px 0;">No accounts loaded. Tap sync above to refresh.</p>`;
         return;
@@ -718,9 +695,6 @@
 
       rawAccounts.forEach(acct => {
         const bal = parseFloat(acct.balance) || 0;
-        if (acct.name.includes("USAA Checking")) checkingBal = bal;
-        if (acct.name.includes("USAA Savings")) savingsBal = bal;
-
         const isCreditOrLoan = acct.type && (acct.type.toLowerCase().includes("credit") || acct.type.toLowerCase().includes("loan"));
         const isNeg = isCreditOrLoan || bal < 0;
 
@@ -737,9 +711,6 @@
         `;
         container.appendChild(div);
       });
-
-      document.getElementById('kpi-checking-float').innerText = `$${checkingBal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-      document.getElementById('kpi-savings').innerText = `$${savingsBal.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     }
 
     /* DYNAMIC TOP 7 PAYEES FROM REAL 1-YEAR ROLLING DATA */
@@ -818,6 +789,7 @@
     /* TRI-FILTER LOGIC (Envelope, Account, Payee Search) */
     function applyTxFilters() {
       const container = document.getElementById('master-tx-container');
+      const summaryTag = document.getElementById('tx-summary-tag');
       if (!container) return;
       container.innerHTML = "";
 
@@ -838,8 +810,9 @@
       matchCount = filtered.length;
       filtered.forEach(t => { matchSum += parseFloat(t.amount) || 0; });
 
-      document.getElementById('tx-match-count').innerText = matchCount;
-      document.getElementById('tx-match-sum').innerText = `${matchSum < 0 ? '-' : ''}$${Math.abs(matchSum).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+      if (summaryTag) {
+        summaryTag.innerText = `(${matchCount} items • ${matchSum < 0 ? '-' : ''}$${Math.abs(matchSum).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})`;
+      }
 
       if (filtered.length === 0) {
         container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 16px 0;">No matching transactions found.</p>`;
