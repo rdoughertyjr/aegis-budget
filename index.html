@@ -81,6 +81,12 @@
     .acct-type { font-size: 0.72rem; color: var(--text-muted); }
     .acct-amt { font-size: 1.05rem; font-weight: 700; }
 
+    /* Milestones Grid */
+    .milestone-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; margin-bottom: 16px; }
+    .milestone-card { background: #101c15; border: 1px solid #1f3326; border-radius: var(--radius-md); padding: 10px 12px; }
+    .milestone-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; }
+    .milestone-val { font-size: 0.95rem; font-weight: 700; color: var(--emerald); }
+
     /* Filter Controls in History View */
     .filter-controls {
       display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
@@ -141,11 +147,13 @@
     }
     .split-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 
-    /* Bill Cards */
+    /* Bill Cards & Badges */
     .bill-group { margin-bottom: 16px; border: 1px solid var(--surface-border); border-radius: var(--radius-md); overflow: hidden; }
     .bill-group-header { background: #1a2920; padding: 10px 14px; font-size: 0.82rem; font-weight: 700; display: flex; justify-content: space-between; }
     .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #1a2720; font-size: 0.85rem; }
     .bill-item:last-child { border-bottom: none; }
+    .tag-auto { background: rgba(16, 185, 129, 0.15); color: var(--emerald); padding: 2px 7px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 6px; }
+    .tag-manual { background: rgba(239, 68, 68, 0.18); color: var(--terracotta); padding: 2px 7px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-left: 6px; }
 
     /* Bottom Navigation Dock (5 Items) */
     .nav-dock {
@@ -250,7 +258,7 @@
       </div>
     </div>
 
-    <!-- VIEW 3: DEDICATED FILTERABLE TRANSACTIONS LIST (Clean Header, No Top Cards) -->
+    <!-- VIEW 3: DEDICATED FILTERABLE TRANSACTIONS LIST -->
     <div id="view-transactions" class="view-panel" style="display: none;">
       <div class="panel">
         <div class="panel-header">
@@ -313,12 +321,43 @@
       </div>
     </div>
 
-    <!-- VIEW 4: MASTER ACCOUNT BALANCES (Clean, No Top Cards) -->
+    <!-- VIEW 4: MASTER ACCOUNT BALANCES & MILESTONES -->
     <div id="view-accounts" class="view-panel" style="display: none;">
       <div class="panel">
         <div class="panel-header">
+          <span class="panel-title">Payoff Milestones</span>
+          <span style="font-size:0.72rem; color:var(--emerald); font-weight:700;">Target: Oct 2029 Debt Free</span>
+        </div>
+        <div class="milestone-grid">
+          <div class="milestone-card">
+            <div class="milestone-label">USAA CC</div>
+            <div class="milestone-val">Aug 2028</div>
+          </div>
+          <div class="milestone-card">
+            <div class="milestone-label">VWCU</div>
+            <div class="milestone-val">Oct 2028</div>
+          </div>
+          <div class="milestone-card">
+            <div class="milestone-label">Chase</div>
+            <div class="milestone-val">Nov 2028</div>
+          </div>
+          <div class="milestone-card">
+            <div class="milestone-label">Debt Loan</div>
+            <div class="milestone-val">Aug 2029</div>
+          </div>
+          <div class="milestone-card">
+            <div class="milestone-label">AMEX</div>
+            <div class="milestone-val">Sep 2029</div>
+          </div>
+          <div class="milestone-card">
+            <div class="milestone-label">May 2031 Cash</div>
+            <div class="milestone-val" style="color:#60a5fa;">$98.7k+</div>
+          </div>
+        </div>
+
+        <div class="panel-header" style="margin-top:14px;">
           <span class="panel-title">Master Account Balances</span>
-          <span style="font-size: 0.75rem; color: var(--text-muted);">From Google Sheet</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted);">Live from Sheet</span>
         </div>
         <div id="accounts-container">
           <p style="color: var(--text-muted); font-size: 0.85rem;">Connecting to Google Sheet...</p>
@@ -326,57 +365,171 @@
       </div>
     </div>
 
-    <!-- VIEW 5: MONTHLY BILLS -->
+    <!-- VIEW 5: ITEMISED MONTHLY BILLS & RECURRING CHARGES -->
     <div id="view-bills" class="view-panel" style="display: none;">
-      <div class="kpi-grid">
-        <div class="kpi-card featured">
-          <div class="kpi-label">Checking Working Float</div>
-          <div class="kpi-val" style="color: var(--emerald);">$102,729.41</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-label">Total Monthly Bills</div>
-          <div class="kpi-val">$3,315.22</div>
-        </div>
-      </div>
-
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">Itemized Bills by Account</span>
+          <span class="panel-title">Committed Bills by Payment Account</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Verified Schedule</span>
         </div>
 
+        <!-- USAA CHECKING (DIRECT ACH) -->
         <div class="bill-group">
-          <div class="bill-group-header"><span>🏛️ USAA Checking (Direct ACH)</span><span>Subtotal: $2,596.59</span></div>
-          <div class="bill-item"><div><strong>Integrity Rentals (Rent)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st of month</div></div><span>$1,577.49</span></div>
-          <div class="bill-item"><div><strong>USAA Debt Loan</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st of month</div></div><span>$835.19</span></div>
-          <div class="bill-item"><div><strong>USAA Auto & Renters Insurance</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 15th of month</div></div><span>$183.91</span></div>
+          <div class="bill-group-header">
+            <span>🏛️ USAA Checking (Direct ACH)</span>
+            <span>$3,638.59/mo</span>
+          </div>
+          <div class="bill-item">
+            <div>
+              <strong>Rent + HOA (Integrity Rentals)</strong>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Due 1st of month <span class="tag-auto">AutoPay</span></div>
+            </div>
+            <span>$1,577.49</span>
+          </div>
+          <div class="bill-item">
+            <div>
+              <strong>USAA Debt Loan</strong>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Due 1st of month <span class="tag-auto">AutoPay</span></div>
+            </div>
+            <span>$835.19</span>
+          </div>
+          <div class="bill-item">
+            <div>
+              <strong>USAA Auto & Renters Insurance</strong>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Due 15th of month <span class="tag-auto">AutoPay</span></div>
+            </div>
+            <span>$183.91</span>
+          </div>
+          <div class="bill-item">
+            <div>
+              <strong>AMEX Payment Plan</strong>
+              <div style="font-size:0.72rem;color:var(--text-muted);">Due 19th of month <span class="tag-auto">AutoPay</span></div>
+            </div>
+            <span>$1,042.00</span>
+          </div>
         </div>
 
+        <!-- CHASE FIXED BILLS -->
         <div class="bill-group">
-          <div class="bill-group-header"><span>💳 Chase Card (Auto-Pay)</span><span>Subtotal: $320.61</span></div>
-          <div class="bill-item"><div><strong>Apple Services (iCloud/Apps)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 3rd</div></div><span>$14.99</span></div>
-          <div class="bill-item"><div><strong>Nintendo Switch Online</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 5th</div></div><span>$3.99</span></div>
-          <div class="bill-item"><div><strong>Canva Pro</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 7th</div></div><span>$15.00</span></div>
-          <div class="bill-item"><div><strong>SiriusXM Radio</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 11th</div></div><span>$11.99</span></div>
-          <div class="bill-item"><div><strong>Disney+ Streaming</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 14th</div></div><span>$19.99</span></div>
-          <div class="bill-item"><div><strong>HBO Max</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 16th</div></div><span>$19.65</span></div>
-          <div class="bill-item"><div><strong>Evergy (Electricity)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 20th–25th</div></div><span>~$160.00</span></div>
-          <div class="bill-item"><div><strong>American Water</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 29th</div></div><span>~$75.00</span></div>
+          <div class="bill-group-header">
+            <span>💳 Chase Card (Fixed & Utilities)</span>
+            <span>$770.43/mo</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Apple TV</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 3rd <span class="tag-auto">AutoPay</span></div></div>
+            <span>$14.99</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Nintendo Online</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 5th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$3.99</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Evergy (Electricity)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 6th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$143.26</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Canva Pro</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 7th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$15.00</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>SiriusXM Radio</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 11th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$11.99</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Disney+ Streaming</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 13th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$21.49</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Max (HBO)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 16th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$19.65</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Chase Interest (28.24% APR)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 17th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$387.00</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>La Roche (Day/Night Cream)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 20th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$68.82</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>American Water</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 30th <span class="tag-manual">Manual Pay</span></div></div>
+            <span>$84.24</span>
+          </div>
         </div>
 
+        <!-- USAA CC FIXED BILLS -->
         <div class="bill-group">
-          <div class="bill-group-header"><span>💳 USAA Credit Card (Utilities & Mobile)</span><span>Subtotal: $379.03</span></div>
-          <div class="bill-item"><div><strong>Warrensburg Sewer</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st–5th</div></div><span>~$95.00</span></div>
-          <div class="bill-item"><div><strong>Amazon Prime</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 4th</div></div><span>$8.19</span></div>
-          <div class="bill-item"><div><strong>Peacock TV</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 15th</div></div><span>$19.99</span></div>
-          <div class="bill-item"><div><strong>New York Times</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 16th</div></div><span>$0.86</span></div>
-          <div class="bill-item"><div><strong>Netflix (4K Family)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 22nd</div></div><span>$26.99</span></div>
-          <div class="bill-item"><div><strong>Socket Telecom (Fiber Internet)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Monthly</div></div><span>$78.00</span></div>
-          <div class="bill-item"><div><strong>Google Fi (Family Plans)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 28th</div></div><span>~$150.00</span></div>
+          <div class="bill-group-header">
+            <span>💳 USAA Credit Card (Fixed Services)</span>
+            <span>$648.55/mo</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Warrensburg Sewer</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st <span class="tag-auto">AutoPay</span></div></div>
+            <span>$99.81</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Amazon Prime</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 4th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$8.19</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>OrderlyMeds</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 4th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$149.00</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Storage Unit</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 6th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$108.00</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>USAA CC Interest (9.99% APR)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 12th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$110.52</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Peacock TV</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 15th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$26.99</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Netflix (4K Family)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 22nd <span class="tag-auto">AutoPay</span></div></div>
+            <span>$26.99</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Google Fi (Family Plan)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 28th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$118.89</span>
+          </div>
         </div>
 
+        <!-- OTHER CARDS & FIXED CHARGES -->
         <div class="bill-group">
-          <div class="bill-group-header"><span>💳 Discover (Streaming)</span><span>Subtotal: $18.99</span></div>
-          <div class="bill-item"><div><strong>Spotify Family</strong><div style="font-size:0.72rem;color:var(--text-muted);">Approx 28th</div></div><span>$18.99</span></div>
+          <div class="bill-group-header">
+            <span>💳 Other Fixed Accounts</span>
+            <span>$341.88/mo</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Discover — Spotify Family</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 28th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$18.99</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>AMEX Interest (9.64% APR)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 25th <span class="tag-auto">AutoPay</span></div></div>
+            <span>$264.25</span>
+          </div>
+          <div class="bill-item">
+            <div><strong>Vantage West CU Interest (14.50% APR)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due 1st <span class="tag-auto">AutoPay</span></div></div>
+            <span>$58.64</span>
+          </div>
+        </div>
+
+        <!-- ANNUAL / SINKING SUBSCRIPTIONS -->
+        <div class="bill-group">
+          <div class="bill-group-header">
+            <span>📅 Annual Subscriptions Schedule</span>
+            <span>$551.98/yr (~$46/mo)</span>
+          </div>
+          <div class="bill-item"><div><strong>Nintendo Family Annual</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due March 31</div></div><span>$19.99</span></div>
+          <div class="bill-item"><div><strong>Costco Membership</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due July 1</div></div><span>$65.00</span></div>
+          <div class="bill-item"><div><strong>Walmart+ Annual</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due July 10</div></div><span>$98.00</span></div>
+          <div class="bill-item"><div><strong>Paramount+ (via Walmart)</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due July 18</div></div><span>$64.99</span></div>
+          <div class="bill-item"><div><strong>Google Nest Aware</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due September 21</div></div><span>$100.00</span></div>
+          <div class="bill-item"><div><strong>Goodbudget Annual</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due October 16</div></div><span>$60.00</span></div>
+          <div class="bill-item"><div><strong>Grammarly Annual</strong><div style="font-size:0.72rem;color:var(--text-muted);">Due December 1</div></div><span>$144.00</span></div>
         </div>
       </div>
     </div>
@@ -389,7 +542,6 @@
           <span style="font-size:0.72rem; color:var(--text-muted);">Rolling 1-Year Top Payees</span>
         </div>
 
-        <!-- DYNAMIC TOP 7 PAYEES CONTAINER -->
         <label style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; display:block;">Top 7 Frequent Spots (Auto-Calculated):</label>
         <div class="chip-scroll" id="dynamic-chips">
           <div class="chip" onclick="setPayee('Walmart', 'Groceries', 'USAA Credit Card')">🛒 Walmart</div>
@@ -713,7 +865,6 @@
       });
     }
 
-    /* DYNAMIC TOP 7 PAYEES FROM REAL 1-YEAR ROLLING DATA */
     function renderTopPayees() {
       const container = document.getElementById('dynamic-chips');
       if (!rawTransactions || rawTransactions.length === 0) return;
@@ -786,7 +937,6 @@
       });
     }
 
-    /* TRI-FILTER LOGIC (Envelope, Account, Payee Search) */
     function applyTxFilters() {
       const container = document.getElementById('master-tx-container');
       const summaryTag = document.getElementById('tx-summary-tag');
@@ -963,7 +1113,6 @@
           const amt2 = parseFloat(document.getElementById('split-amt-2').value);
           const totalAmt = (amt1 + amt2).toFixed(2);
 
-          // Row 1
           await fetch(SCRIPT_URL, {
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -972,7 +1121,6 @@
             })
           });
 
-          // Row 2
           await fetch(SCRIPT_URL, {
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
