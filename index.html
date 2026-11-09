@@ -81,6 +81,19 @@
     .acct-type { font-size: 0.72rem; color: var(--text-muted); }
     .acct-amt { font-size: 1.05rem; font-weight: 700; }
 
+    /* Filter Controls in History View */
+    .filter-controls {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;
+    }
+    @media (max-width: 600px) {
+      .filter-controls { grid-template-columns: 1fr; }
+    }
+    .search-input {
+      width: 100%; background: #0e1712; border: 1px solid var(--surface-border);
+      color: #fff; padding: 10px 12px; border-radius: var(--radius-md); font-size: 0.85rem; outline: none; margin-bottom: 12px;
+    }
+    .search-input:focus { border-color: var(--emerald); }
+
     /* Detail View */
     .detail-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
     .back-btn {
@@ -134,19 +147,19 @@
     .bill-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-bottom: 1px solid #1a2720; font-size: 0.85rem; }
     .bill-item:last-child { border-bottom: none; }
 
-    /* Bottom Navigation Dock */
+    /* Bottom Navigation Dock (5 Items) */
     .nav-dock {
       position: fixed; bottom: 0; left: 0; right: 0; height: 68px;
       background: rgba(12, 18, 15, 0.95); backdrop-filter: blur(16px);
       border-top: 1px solid var(--surface-border); display: flex; justify-content: space-around;
-      align-items: center; z-index: 50; padding: 0 10px;
+      align-items: center; z-index: 50; padding: 0 6px;
     }
     .nav-item {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      color: var(--text-muted); font-size: 0.72rem; cursor: pointer; border: none; background: none;
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      color: var(--text-muted); font-size: 0.68rem; cursor: pointer; border: none; background: none; flex: 1;
     }
     .nav-item.active { color: var(--emerald); font-weight: 600; }
-    .nav-item svg { width: 22px; height: 22px; }
+    .nav-item svg { width: 20px; height: 20px; }
 
     #toast {
       display: none; position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
@@ -171,7 +184,7 @@
   </header>
 
   <div class="container">
-    <!-- VIEW 1: DASHBOARD -->
+    <!-- VIEW 1: ENVELOPES (DASHBOARD) -->
     <div id="view-dashboard" class="view-panel">
       <div class="kpi-grid">
         <div class="kpi-card featured">
@@ -204,7 +217,7 @@
       </div>
     </div>
 
-    <!-- VIEW 2: ENVELOPE DETAIL / HISTORY -->
+    <!-- VIEW 2: ENVELOPE DETAIL / HISTORY DRILLDOWN -->
     <div id="view-detail" class="view-panel" style="display: none;">
       <div class="detail-nav">
         <button class="back-btn" onclick="closeEnvelopeDetail()">← Back to Dashboard</button>
@@ -237,7 +250,78 @@
       </div>
     </div>
 
-    <!-- VIEW 3: ACCOUNT BALANCES -->
+    <!-- VIEW 3: DEDICATED FILTERABLE TRANSACTIONS LIST -->
+    <div id="view-transactions" class="view-panel" style="display: none;">
+      <div class="kpi-grid">
+        <div class="kpi-card featured">
+          <div class="kpi-label">Filtered Matches</div>
+          <div class="kpi-val" id="tx-match-count" style="color: var(--emerald);">0</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Total Filtered Sum</div>
+          <div class="kpi-val" id="tx-match-sum">$0.00</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Filter Transactions</span>
+          <button style="background:none; border:none; color:var(--emerald); font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="resetTxFilters()">Reset All</button>
+        </div>
+
+        <input type="text" class="search-input" id="filter-payee" placeholder="🔍 Search payee / vendor (e.g. Walmart, Chick-Fil-A, Evergy)" oninput="applyTxFilters()">
+
+        <div class="filter-controls">
+          <div>
+            <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Filter by Envelope:</label>
+            <select id="filter-envelope" onchange="applyTxFilters()">
+              <option value="ALL">All Envelopes</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Food">Food (Dining Out)</option>
+              <option value="Car">Car</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Beauty/Clothes">Beauty/Clothes</option>
+              <option value="House">House</option>
+              <option value="Miscellaneous">Miscellaneous</option>
+              <option value="Teaching">Teaching</option>
+              <option value="School">School</option>
+              <option value="Travel">Travel</option>
+              <option value="Body/Health">Body/Health</option>
+              <option value="Christmas/Gifts">Christmas/Gifts</option>
+              <option value="Rent">Rent</option>
+              <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
+              <option value="Phones">Phones</option>
+              <option value="Internet">Internet</option>
+              <option value="Insurance">Insurance</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Interest Charge">Interest Charge</option>
+              <option value="Cash">Cash</option>
+              <option value="USAA Debt Loan">USAA Debt Loan</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.72rem; color:var(--text-muted); display:block; margin-bottom:4px;">Filter by Account:</label>
+            <select id="filter-account" onchange="applyTxFilters()">
+              <option value="ALL">All Accounts</option>
+              <option value="Chase">Chase</option>
+              <option value="USAA Credit Card">USAA Credit Card</option>
+              <option value="USAA Checking">USAA Checking</option>
+              <option value="USAA Savings">USAA Savings</option>
+              <option value="American Express">American Express</option>
+              <option value="Discover">Discover</option>
+              <option value="Vantage West Credit Card">Vantage West Credit Card</option>
+              <option value="USAA Debt Loan">USAA Debt Loan</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="master-tx-container">
+          <p style="color: var(--text-muted); font-size: 0.85rem; padding: 12px 0;">Loading transactions...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 4: MASTER ACCOUNT BALANCES -->
     <div id="view-accounts" class="view-panel" style="display: none;">
       <div class="kpi-grid">
         <div class="kpi-card featured">
@@ -261,7 +345,7 @@
       </div>
     </div>
 
-    <!-- VIEW 4: MONTHLY BILLS -->
+    <!-- VIEW 5: MONTHLY BILLS -->
     <div id="view-bills" class="view-panel" style="display: none;">
       <div class="kpi-grid">
         <div class="kpi-card featured">
@@ -316,7 +400,7 @@
       </div>
     </div>
 
-    <!-- VIEW 5: FAST EXPENSE ENTRY -->
+    <!-- VIEW 6: FAST EXPENSE ENTRY -->
     <div id="view-log" class="view-panel" style="display: none;">
       <div class="panel">
         <div class="panel-header">
@@ -327,7 +411,6 @@
         <!-- DYNAMIC TOP 7 PAYEES CONTAINER -->
         <label style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px; display:block;">Top 7 Frequent Spots (Auto-Calculated):</label>
         <div class="chip-scroll" id="dynamic-chips">
-          <!-- Populated automatically on load -->
           <div class="chip" onclick="setPayee('Walmart', 'Groceries', 'USAA Credit Card')">🛒 Walmart</div>
           <div class="chip" onclick="setPayee('Amazon', 'Miscellaneous', 'Chase')">📦 Amazon</div>
           <div class="chip" onclick="setPayee('B&B Theaters', 'Entertainment', 'USAA Credit Card')">🍿 B&B Theaters</div>
@@ -338,6 +421,12 @@
         </div>
 
         <form id="tx-form" onsubmit="submitTransaction(event)">
+          <!-- DATE PICKER FIELD -->
+          <div class="form-group">
+            <label>Transaction Date</label>
+            <input type="date" id="tx-date" required>
+          </div>
+
           <div class="form-group">
             <label>Payee / Vendor</label>
             <input type="text" id="tx-payee" placeholder="e.g. Walmart, Shoppette, Target" required oninput="autoMatchEnvelope(this.value)">
@@ -350,6 +439,7 @@
               <option value="USAA Checking">USAA Checking</option>
               <option value="American Express">American Express</option>
               <option value="Discover">Discover</option>
+              <option value="Vantage West Credit Card">Vantage West Credit Card</option>
             </select>
           </div>
 
@@ -446,11 +536,15 @@
     </div>
   </div>
 
-  <!-- Bottom Navigation Dock -->
+  <!-- Bottom Navigation Dock (5 Items) -->
   <div class="nav-dock">
     <button class="nav-item active" onclick="switchNav('dashboard', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
       Envelopes
+    </button>
+    <button class="nav-item" onclick="switchNav('transactions', this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+      History
     </button>
     <button class="nav-item" onclick="switchNav('accounts', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
@@ -474,6 +568,17 @@
     let rawTransactions = [];
     let currentFilter = 'lifestyle';
     let isSplitMode = false;
+
+    function initDate() {
+      const dateInput = document.getElementById('tx-date');
+      if (dateInput && !dateInput.value) {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        dateInput.value = `${yyyy}-${mm}-${dd}`;
+      }
+    }
 
     function setFilter(type) {
       currentFilter = type;
@@ -538,6 +643,7 @@
         renderDashboard();
         renderAccounts();
         renderTopPayees();
+        applyTxFilters();
         dot.classList.remove('syncing');
         status.innerText = "Google Sheet Live";
       } catch (err) {
@@ -599,17 +705,25 @@
 
     function renderAccounts() {
       const container = document.getElementById('accounts-container');
+      if (!container) return;
       container.innerHTML = "";
 
       let checkingBal = 0;
       let savingsBal = 0;
+
+      if (!rawAccounts || rawAccounts.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 12px 0;">No accounts loaded. Tap sync above to refresh.</p>`;
+        return;
+      }
 
       rawAccounts.forEach(acct => {
         const bal = parseFloat(acct.balance) || 0;
         if (acct.name.includes("USAA Checking")) checkingBal = bal;
         if (acct.name.includes("USAA Savings")) savingsBal = bal;
 
-        const isNeg = bal < 0;
+        const isCreditOrLoan = acct.type && (acct.type.toLowerCase().includes("credit") || acct.type.toLowerCase().includes("loan"));
+        const isNeg = isCreditOrLoan || bal < 0;
+
         const div = document.createElement('div');
         div.className = 'acct-card';
         div.innerHTML = `
@@ -636,7 +750,8 @@
       const ignore = [
         'account transfer', 'fill envelopes', 'air force', 'warrensburg r-iv', 'income',
         'interest paid', 'atm', 'usaa', 'chase', 'amex payment', 'transferwise', 'savings',
-        'discover', 'pennymac', 'andrea ducke', 'usaa debt loan', 'debt payment', 'envelope transfer'
+        'discover', 'pennymac', 'andrea ducke', 'usaa debt loan', 'debt payment', 'envelope transfer',
+        'baseline reconciliation to goodbudget'
       ];
 
       const counts = {};
@@ -646,9 +761,8 @@
       rawTransactions.forEach(t => {
         const p = t.payee.trim();
         const pLower = p.toLowerCase();
-        if (!p || ignore.includes(pLower) || pLower.startsWith('updated') || pLower.startsWith('created')) return;
+        if (!p || ignore.includes(pLower) || pLower.startsWith('updated') || pLower.startsWith('created') || pLower.startsWith('baseline')) return;
 
-        // Normalization
         let canon = p;
         if (/wal[- ]?mart/i.test(p)) canon = 'Walmart';
         else if (/mcdonald/i.test(p)) canon = "McDonald's";
@@ -664,7 +778,6 @@
         if (t.account) acctMap[canon][t.account] = (acctMap[canon][t.account] || 0) + 1;
       });
 
-      // Sort and take top 7
       const top7 = Object.keys(counts).sort((a, b) => counts[b] - counts[a]).slice(0, 7);
       if (top7.length === 0) return;
 
@@ -677,7 +790,6 @@
       };
 
       top7.forEach(payee => {
-        // Find most common envelope
         let bestEnv = "Groceries";
         let bestEnvCount = 0;
         if (envMap[payee]) {
@@ -686,7 +798,6 @@
           }
         }
 
-        // Find most common account
         let bestAcct = "Chase";
         let bestAcctCount = 0;
         if (acctMap[payee]) {
@@ -702,6 +813,79 @@
         div.innerHTML = `${icon} ${payee} <span style="font-size:0.68rem; color:var(--text-muted);">(${counts[payee]})</span>`;
         container.appendChild(div);
       });
+    }
+
+    /* TRI-FILTER LOGIC (Envelope, Account, Payee Search) */
+    function applyTxFilters() {
+      const container = document.getElementById('master-tx-container');
+      if (!container) return;
+      container.innerHTML = "";
+
+      const envFilter = document.getElementById('filter-envelope').value;
+      const acctFilter = document.getElementById('filter-account').value;
+      const payeeSearch = document.getElementById('filter-payee').value.trim().toLowerCase();
+
+      let matchCount = 0;
+      let matchSum = 0;
+
+      const filtered = rawTransactions.filter(t => {
+        const matchesEnv = (envFilter === 'ALL') || (t.envelope && t.envelope.toLowerCase() === envFilter.toLowerCase());
+        const matchesAcct = (acctFilter === 'ALL') || (t.account && t.account.toLowerCase() === acctFilter.toLowerCase());
+        const matchesPayee = !payeeSearch || (t.payee && t.payee.toLowerCase().includes(payeeSearch)) || (t.notes && t.notes.toLowerCase().includes(payeeSearch));
+        return matchesEnv && matchesAcct && matchesPayee;
+      });
+
+      matchCount = filtered.length;
+      filtered.forEach(t => { matchSum += parseFloat(t.amount) || 0; });
+
+      document.getElementById('tx-match-count').innerText = matchCount;
+      document.getElementById('tx-match-sum').innerText = `${matchSum < 0 ? '-' : ''}$${Math.abs(matchSum).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 16px 0;">No matching transactions found.</p>`;
+        return;
+      }
+
+      const groups = {};
+      filtered.forEach(item => {
+        const ym = item.date ? item.date.substring(0, 7) : "Other";
+        if (!groups[ym]) groups[ym] = [];
+        groups[ym].push(item);
+      });
+
+      const sortedMonths = Object.keys(groups).sort().reverse();
+
+      sortedMonths.forEach(ym => {
+        const list = groups[ym];
+        const h = document.createElement('div');
+        h.className = 'month-header';
+        h.innerText = `${ym} (${list.length} Items)`;
+        container.appendChild(h);
+
+        list.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'tx-item';
+          const amt = parseFloat(item.amount);
+          const isNegative = amt < 0;
+          div.innerHTML = `
+            <div class="tx-left">
+              <span class="tx-payee">${item.payee}</span>
+              <span class="tx-sub">${item.date} • ${item.envelope || 'Uncategorized'} • ${item.account}${item.notes ? ' • ' + item.notes : ''}</span>
+            </div>
+            <span class="tx-amt" style="color: ${isNegative ? 'var(--text)' : 'var(--emerald)'}">
+              ${isNegative ? '-' : '+'}$${Math.abs(amt).toFixed(2)}
+            </span>
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function resetTxFilters() {
+      document.getElementById('filter-envelope').value = 'ALL';
+      document.getElementById('filter-account').value = 'ALL';
+      document.getElementById('filter-payee').value = '';
+      applyTxFilters();
     }
 
     function openEnvelopeDetail(catName, target, spent, remaining) {
@@ -793,6 +977,7 @@
       btn.innerText = "Posting...";
       btn.disabled = true;
 
+      const dateVal = document.getElementById('tx-date').value;
       const payee = document.getElementById('tx-payee').value.trim();
       const account = document.getElementById('tx-account').value;
       const baseNote = document.getElementById('tx-notes').value.trim();
@@ -809,7 +994,7 @@
           await fetch(SCRIPT_URL, {
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
+              date: dateVal, payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
               notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
             })
           });
@@ -818,7 +1003,7 @@
           await fetch(SCRIPT_URL, {
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
+              date: dateVal, payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
               notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
             })
           });
@@ -831,7 +1016,7 @@
           await fetch(SCRIPT_URL, {
             method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              payee: payee, account: account, envelope: envelope, amount: amount,
+              date: dateVal, payee: payee, account: account, envelope: envelope, amount: amount,
               notes: baseNote || "Via Aegis App"
             })
           });
@@ -840,6 +1025,7 @@
         }
 
         document.getElementById('tx-form').reset();
+        initDate();
         if (isSplitMode) toggleSplitMode();
         switchNav('dashboard', document.querySelectorAll('.nav-item')[0]);
         setTimeout(fetchSheetData, 1200);
@@ -858,7 +1044,10 @@
       setTimeout(() => { t.style.display = 'none'; }, 2600);
     }
 
-    window.addEventListener('DOMContentLoaded', fetchSheetData);
+    window.addEventListener('DOMContentLoaded', () => {
+      initDate();
+      fetchSheetData();
+    });
   </script>
 </body>
 </html>
