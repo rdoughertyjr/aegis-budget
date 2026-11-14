@@ -681,7 +681,7 @@
     <div id="view-dashboard" class="view-panel">
       <div class="upcoming-strip-label">
         <span>Next 4 Scheduled Transactions</span>
-        <span id="upcoming-range-label" style="color: var(--text-dim);">Upcoming</span>
+        <span id="upcoming-range-label" style="color: var(--text-dim);">Live Schedule</span>
       </div>
       <div class="upcoming-grid" id="upcoming-tiles-container">
         <div class="upcoming-tile"><span class="upcoming-date">Loading...</span></div>
@@ -839,7 +839,7 @@
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Total Monthly Fixed</div>
-          <div class="kpi-val" id="bills-kpi-total">$5,344.19</div>
+          <div class="kpi-val" id="bills-kpi-total">$0.00</div>
         </div>
       </div>
 
@@ -1076,89 +1076,40 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwcji2U6WNFANj6miEgsuG4bGHZf8xJb2LctDtMVE6qMlls1D-iURCJhmZfbu6z_v_s/exec";
     const LIFESTYLE = ["Groceries", "Food", "Car", "Entertainment", "Beauty/Clothes", "House", "Miscellaneous"];
     
-    const SCHEDULED_EVENTS = [
+    const PAYCHECK_SCHEDULE = [
       { day: 1,  payee: "Air Force Pay", account: "USAA Checking", amount: 4437.00, isIncome: true },
       { day: 15, payee: "Air Force Pay", account: "USAA Checking", amount: 2437.00, isIncome: true },
-      { day: 20, payee: "Warrensburg Pay", account: "USAA Checking", amount: 2939.00, isIncome: true },
-      { day: 1,  payee: "Rent + HOA", account: "USAA Checking", amount: -1577.49, isIncome: false },
-      { day: 1,  payee: "USAA Debt Loan", account: "USAA Checking", amount: -835.19, isIncome: false },
-      { day: 1,  payee: "Warrensburg Sewer", account: "USAA Credit Card", amount: -99.81, isIncome: false },
-      { day: 1,  payee: "VWCU Interest", account: "Vantage West Credit Card", amount: -58.64, isIncome: false },
-      { day: 3,  payee: "Apple TV", account: "Chase", amount: -14.99, isIncome: false },
-      { day: 4,  payee: "Amazon Prime", account: "USAA Credit Card", amount: -8.19, isIncome: false },
-      { day: 4,  payee: "OrderlyMeds", account: "USAA Credit Card", amount: -149.00, isIncome: false },
-      { day: 5,  payee: "Nintendo Online", account: "Chase", amount: -3.99, isIncome: false },
-      { day: 6,  payee: "Evergy", account: "Chase", amount: -143.26, isIncome: false },
-      { day: 6,  payee: "Storage Unit", account: "USAA Credit Card", amount: -108.00, isIncome: false },
-      { day: 7,  payee: "Canva Pro", account: "Chase", amount: -15.00, isIncome: false },
-      { day: 11, payee: "SiriusXM Radio", account: "Chase", amount: -11.99, isIncome: false },
-      { day: 12, payee: "USAA CC Interest", account: "USAA Credit Card", amount: -110.52, isIncome: false },
-      { day: 13, payee: "Disney+", account: "Chase", amount: -21.49, isIncome: false },
-      { day: 13, payee: "NY Times", account: "Chase", amount: -4.00, isIncome: false },
-      { day: 15, payee: "USAA Insurance", account: "USAA Checking", amount: -183.91, isIncome: false },
-      { day: 15, payee: "Peacock TV", account: "USAA Credit Card", amount: -26.99, isIncome: false },
-      { day: 16, payee: "Max", account: "Chase", amount: -19.65, isIncome: false },
-      { day: 17, payee: "Chase Interest", account: "Chase", amount: -387.00, isIncome: false },
-      { day: 19, payee: "AMEX Payment Plan", account: "USAA Checking", amount: -1042.00, isIncome: false },
-      { day: 20, payee: "La Roche", account: "Chase", amount: -68.82, isIncome: false },
-      { day: 22, payee: "Netflix", account: "USAA Credit Card", amount: -26.99, isIncome: false },
-      { day: 25, payee: "AMEX Interest", account: "American Express", amount: -264.25, isIncome: false },
-      { day: 28, payee: "Google Fi", account: "USAA Credit Card", amount: -118.89, isIncome: false },
-      { day: 28, payee: "Spotify", account: "Discover", amount: -18.99, isIncome: false },
-      { day: 30, payee: "American Water", account: "Chase", amount: -84.24, isIncome: false }
+      { day: 20, payee: "Warrensburg Pay", account: "USAA Checking", amount: 2939.00, isIncome: true }
     ];
 
-    const BILL_GROUPS = [
-      {
-        account: "USAA Checking (Direct ACH)",
-        type: "checking",
-        items: [
-          { day: 1,  payee: "Rent + HOA (Integrity Rentals)", envelope: "Rent", account: "USAA Checking", amount: 1577.49, auto: true },
-          { day: 1,  payee: "USAA Debt Loan", envelope: "USAA Debt Loan", account: "USAA Checking", amount: 835.19, auto: true },
-          { day: 15, payee: "USAA Auto & Renters Insurance", envelope: "Insurance", account: "USAA Checking", amount: 183.91, auto: true },
-          { day: 19, payee: "AMEX Payment Plan", envelope: "Cash", account: "USAA Checking", amount: 1042.00, auto: true }
-        ]
-      },
-      {
-        account: "Chase Card (Fixed & Utilities)",
-        type: "card",
-        items: [
-          { day: 3,  payee: "Apple TV", envelope: "Streaming/Subscriptions", account: "Chase", amount: 14.99, auto: true },
-          { day: 5,  payee: "Nintendo Online", envelope: "Streaming/Subscriptions", account: "Chase", amount: 3.99, auto: true },
-          { day: 6,  payee: "Evergy", envelope: "Utilities", account: "Chase", amount: 143.26, auto: true },
-          { day: 7,  payee: "Canva Pro", envelope: "Teaching", account: "Chase", amount: 15.00, auto: true },
-          { day: 11, payee: "SiriusXM Radio", envelope: "Streaming/Subscriptions", account: "Chase", amount: 11.99, auto: true },
-          { day: 13, payee: "Disney+", envelope: "Streaming/Subscriptions", account: "Chase", amount: 21.49, auto: true },
-          { day: 13, payee: "NY Times", envelope: "Streaming/Subscriptions", account: "Chase", amount: 4.00, auto: true },
-          { day: 16, payee: "Max", envelope: "Streaming/Subscriptions", account: "Chase", amount: 19.65, auto: true },
-          { day: 17, payee: "Chase Interest", envelope: "Interest Charge", account: "Chase", amount: 387.00, auto: true },
-          { day: 20, payee: "La Roche", envelope: "Beauty/Clothes", account: "Chase", amount: 68.82, auto: true },
-          { day: 30, payee: "American Water", envelope: "Utilities", account: "Chase", amount: 84.24, auto: false }
-        ]
-      },
-      {
-        account: "USAA Credit Card (Fixed Services)",
-        type: "card",
-        items: [
-          { day: 1,  payee: "Warrensburg Sewer", envelope: "Utilities", account: "USAA Credit Card", amount: 99.81, auto: true },
-          { day: 4,  payee: "Amazon Prime", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", amount: 8.19, auto: true },
-          { day: 4,  payee: "OrderlyMeds", envelope: "Body/Health", account: "USAA Credit Card", amount: 149.00, auto: true },
-          { day: 6,  payee: "Storage Unit", envelope: "House", account: "USAA Credit Card", amount: 108.00, auto: true },
-          { day: 12, payee: "USAA CC Interest", envelope: "Interest Charge", account: "USAA Credit Card", amount: 110.52, auto: true },
-          { day: 15, payee: "Peacock TV", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", amount: 26.99, auto: true },
-          { day: 22, payee: "Netflix", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", amount: 26.99, auto: true },
-          { day: 28, payee: "Google Fi", envelope: "Phones", account: "USAA Credit Card", amount: 118.89, auto: true }
-        ]
-      },
-      {
-        account: "Other Accounts",
-        type: "card",
-        items: [
-          { day: 28, payee: "Spotify", envelope: "Streaming/Subscriptions", account: "Discover", amount: 18.99, auto: true },
-          { day: 25, payee: "AMEX Interest", envelope: "Interest Charge", account: "American Express", amount: 264.25, auto: true },
-          { day: 1,  payee: "VWCU Interest", envelope: "Interest Charge", account: "Vantage West Credit Card", amount: 58.64, auto: true }
-        ]
-      }
+    // Fallback bills list used only if offline before initial sheet sync
+    const FALLBACK_BILLS = [
+      { day: 1,  payee: "Rent + HOA", envelope: "Rent", account: "USAA Checking", section: "USAA Checking", amount: 1577.49, auto: true, paid: false },
+      { day: 1,  payee: "USAA Debt Loan", envelope: "USAA Debt Loan", account: "USAA Checking", section: "USAA Checking", amount: 835.19, auto: true, paid: false },
+      { day: 15, payee: "USAA Insurances", envelope: "Insurance", account: "USAA Checking", section: "USAA Checking", amount: 183.91, auto: true, paid: false },
+      { day: 19, payee: "AMEX Payment", envelope: "Transfer", account: "USAA Checking", section: "USAA Checking", amount: 1042.00, auto: true, paid: false },
+      { day: 3,  payee: "Apple TV", envelope: "Streaming/Subscriptions", account: "Chase", section: "Chase", amount: 14.99, auto: true, paid: false },
+      { day: 5,  payee: "Nintendo Online", envelope: "Streaming/Subscriptions", account: "Chase", section: "Chase", amount: 3.99, auto: true, paid: false },
+      { day: 6,  payee: "Evergy", envelope: "Utilities", account: "Chase", section: "Chase", amount: 143.26, auto: false, paid: false },
+      { day: 7,  payee: "Canva Pro", envelope: "Streaming/Subscriptions", account: "Chase", section: "Chase", amount: 15.00, auto: true, paid: false },
+      { day: 11, payee: "SiriusXM", envelope: "Streaming/Subscriptions", account: "Chase", section: "Chase", amount: 11.99, auto: true, paid: false },
+      { day: 13, payee: "Disney+", envelope: "Streaming/Subscriptions", account: "Chase", section: "Chase", amount: 21.49, auto: true, paid: false },
+      { day: 13, payee: "NY Times", envelope: "Streaming/Subscriptions", account: "Chase", section: "Chase", amount: 4.00, auto: true, paid: false },
+      { day: 16, payee: "Max", envelope: "Streaming/Subscriptions", account: "Chase", section: "Chase", amount: 19.65, auto: true, paid: false },
+      { day: 17, payee: "Chase Interest", envelope: "Interest Charge", account: "Chase", section: "Chase", amount: 387.00, auto: true, paid: false },
+      { day: 20, payee: "La Roche (Day/Night Cream)", envelope: "Beauty/Clothes", account: "Chase", section: "Chase", amount: 68.82, auto: true, paid: false },
+      { day: 30, payee: "American Water", envelope: "Utilities", account: "Chase", section: "Chase", amount: 72.31, auto: false, paid: false },
+      { day: 1,  payee: "Warrensburg Sewer", envelope: "Utilities", account: "USAA Credit Card", section: "USAA Credit Card", amount: 99.81, auto: false, paid: false },
+      { day: 4,  payee: "Amazon Prime", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", section: "USAA Credit Card", amount: 8.19, auto: true, paid: false },
+      { day: 4,  payee: "OrderlyMeds", envelope: "Body/Health", account: "USAA Credit Card", section: "USAA Credit Card", amount: 149.00, auto: false, paid: false },
+      { day: 6,  payee: "Storage Unit", envelope: "House", account: "USAA Credit Card", section: "USAA Credit Card", amount: 108.00, auto: true, paid: false },
+      { day: 6,  payee: "USAA Interest", envelope: "Interest Charge", account: "USAA Credit Card", section: "USAA Credit Card", amount: 51.42, auto: true, paid: false },
+      { day: 15, payee: "Peacock", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", section: "USAA Credit Card", amount: 26.99, auto: true, paid: false },
+      { day: 22, payee: "Netflix", envelope: "Streaming/Subscriptions", account: "USAA Credit Card", section: "USAA Credit Card", amount: 26.99, auto: true, paid: false },
+      { day: 28, payee: "Google Fi", envelope: "Phones", account: "USAA Credit Card", section: "USAA Credit Card", amount: 118.89, auto: true, paid: false },
+      { day: 28, payee: "Spotify (Discover)", envelope: "Streaming/Subscriptions", account: "Discover", section: "Other Accounts", amount: 18.99, auto: true, paid: false },
+      { day: 25, payee: "AMEX Interest (AMEX)", envelope: "Interest Charge", account: "American Express", section: "Other Accounts", amount: 264.25, auto: true, paid: false },
+      { day: 1,  payee: "VWCU Interest", envelope: "Interest Charge", account: "Vantage West Credit Card", section: "Other Accounts", amount: 58.64, auto: true, paid: false }
     ];
 
     const ANNUAL_SUBS = [
@@ -1196,11 +1147,11 @@
 
     let rawEnvelopes = [];
     let rawAccounts = [];
+    let rawBills = [...FALLBACK_BILLS];
     let rawTransactions = [];
     let isSplitMode = false;
     let duplicateResolveFn = null;
 
-    /* DUPLICATE DETECTION HELPER */
     function findDuplicateTransaction(dateStr, payeeStr, absAmount) {
       const targetPayee = (payeeStr || "").toLowerCase().trim();
       const targetAmt = Math.round(Math.abs(parseFloat(absAmount) || 0) * 100);
@@ -1345,6 +1296,9 @@
         const data = await res.json();
         rawEnvelopes = data.envelopes || [];
         rawAccounts = data.accounts || [];
+        if (data.bills && data.bills.length > 0) {
+          rawBills = data.bills;
+        }
         rawTransactions = data.transactions || [];
         renderUpcomingTiles();
         renderDashboard();
@@ -1361,6 +1315,7 @@
       }
     }
 
+    /* NEXT 4 SCHEDULED TRANSACTIONS STRIP (USES LIVE SHEET BILL AMOUNTS) */
     function renderUpcomingTiles() {
       const container = document.getElementById('upcoming-tiles-container');
       if (!container) return;
@@ -1380,6 +1335,19 @@
         }
       });
 
+      // Merge Paycheck Schedule + Live Bills from Sheet
+      const combinedEvents = [
+        ...PAYCHECK_SCHEDULE,
+        ...rawBills.map(b => ({
+          day: b.day,
+          payee: b.payee.replace(/\([^)]*\)/g, "").trim(),
+          account: b.account,
+          amount: -Math.abs(parseFloat(b.amount) || 0),
+          isIncome: false,
+          paidThisMonth: b.paid
+        }))
+      ];
+
       const candidates = [];
       for (let mOffset = 0; mOffset <= 1; mOffset++) {
         const targetDateObj = new Date(currentYear, currentMonth + mOffset, 1);
@@ -1387,14 +1355,14 @@
         const mo = targetDateObj.getMonth();
         const maxDay = new Date(yr, mo + 1, 0).getDate();
 
-        SCHEDULED_EVENTS.forEach(ev => {
+        combinedEvents.forEach(ev => {
           const clampedDay = Math.min(ev.day, maxDay);
           const evDate = new Date(yr, mo, clampedDay);
           if (evDate < todayZero) return;
 
           if (mOffset === 0 && clampedDay === now.getDate()) {
             const pLower = ev.payee.toLowerCase();
-            if (postedThisMonth[pLower] || (pLower.includes("air force") && postedThisMonth["air force mid-month"])) {
+            if (ev.paidThisMonth || postedThisMonth[pLower] || (pLower.includes("air force") && postedThisMonth["air force mid-month"])) {
               return;
             }
           }
@@ -1561,6 +1529,7 @@
       switchNav('transactions', document.getElementById('nav-transactions'));
     }
 
+    /* DYNAMIC BILLS CHECKLIST (GROUPED LIVE FROM 'Monthly Bills by Account') */
     function renderBillsChecklist() {
       const container = document.getElementById('bills-dynamic-container');
       if (!container) return;
@@ -1589,36 +1558,49 @@
         }
       });
 
+      const sectionOrder = [
+        { key: "USAA Checking", label: "USAA Checking (Direct ACH)" },
+        { key: "Chase", label: "Chase Card (Fixed & Utilities)" },
+        { key: "USAA Credit Card", label: "USAA Credit Card (Fixed Services)" },
+        { key: "Other Accounts", label: "Other Accounts" }
+      ];
+
       let totalCommitted = 0;
       let totalCleared = 0;
       let totalPending = 0;
 
-      BILL_GROUPS.forEach(grp => {
+      sectionOrder.forEach(sec => {
+        const items = rawBills.filter(b => b.section === sec.key);
+        if (items.length === 0) return;
+
         const groupDiv = document.createElement('div');
         groupDiv.className = 'bill-group';
 
         let grpTotal = 0;
-        grp.items.forEach(it => grpTotal += it.amount);
+        items.forEach(it => grpTotal += parseFloat(it.amount) || 0);
 
         const headDiv = document.createElement('div');
         headDiv.className = 'bill-group-header';
-        headDiv.innerHTML = `<span>${grp.account}</span><span>$${grpTotal.toFixed(2)}/mo</span>`;
+        headDiv.innerHTML = `<span>${sec.label}</span><span>$${grpTotal.toFixed(2)}/mo</span>`;
         groupDiv.appendChild(headDiv);
 
-        grp.items.forEach(item => {
-          totalCommitted += item.amount;
-          const pLower = item.payee.toLowerCase().trim();
-          const aLower = item.account.toLowerCase().trim();
+        items.forEach(item => {
+          const amt = parseFloat(item.amount) || 0;
+          totalCommitted += amt;
+          const cleanPayee = item.payee.replace(/\([^)]*\)/g, "").trim();
+          const pLower = cleanPayee.toLowerCase();
+          const aLower = (item.account || "").toLowerCase().trim();
 
-          const isCleared = clearedKeys[pLower + "|" + aLower] || 
-                            clearedKeys[pLower] || 
+          const isCleared = item.paid ||
+                            clearedKeys[pLower + "|" + aLower] ||
+                            clearedKeys[pLower] ||
                             (pLower.includes("rent") && clearedKeys["integrity rentals"]) ||
                             (pLower.includes("water") && clearedKeys["american water"]);
 
           if (isCleared) {
-            totalCleared += item.amount;
+            totalCleared += amt;
           } else {
-            totalPending += item.amount;
+            totalPending += amt;
           }
 
           const itemDiv = document.createElement('div');
@@ -1635,7 +1617,8 @@
 
           let manualAction = "";
           if (!item.auto && !isCleared) {
-            manualAction = `<button class="btn-manual-pay" onclick="payManualBill('${item.payee}', '${item.envelope}', '${item.account}', ${item.amount})">Post to Sheet</button>`;
+            const safePayee = cleanPayee.replace(/'/g, "\\'");
+            manualAction = `<button class="btn-manual-pay" onclick="payManualBill('${safePayee}', '${item.envelope}', '${item.account}', ${amt})">Post to Sheet</button>`;
           }
 
           itemDiv.innerHTML = `
@@ -1648,7 +1631,7 @@
             </div>
             <div class="bill-right">
               ${manualAction}
-              <span style="font-weight:600; font-variant-numeric: tabular-nums;">$${item.amount.toFixed(2)}</span>
+              <span style="font-weight:600; font-variant-numeric: tabular-nums;">$${amt.toFixed(2)}</span>
             </div>
           `;
           groupDiv.appendChild(itemDiv);
@@ -1919,7 +1902,6 @@
       const account = document.getElementById('tx-account').value;
       const baseNote = document.getElementById('tx-notes').value.trim();
 
-      // Check for duplicate before posting
       if (isSplitMode) {
         const amt1 = parseFloat(document.getElementById('split-amt-1').value) || 0;
         const amt2 = parseFloat(document.getElementById('split-amt-2').value) || 0;
