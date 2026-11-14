@@ -204,25 +204,6 @@
       font-variant-numeric: tabular-nums;
     }
 
-    /* Filter Bar */
-    .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; }
-    .filter-btn {
-      background: var(--surface); 
-      border: 1px solid var(--surface-border); 
-      color: var(--text-muted);
-      padding: 6px 14px; 
-      border-radius: 20px; 
-      font-size: 0.76rem; 
-      font-weight: 500; 
-      cursor: pointer; 
-      transition: all 0.15s ease;
-    }
-    .filter-btn.active { 
-      background: var(--accent-soft); 
-      color: var(--text); 
-      border-color: var(--accent); 
-    }
-
     /* Mode Switcher (Expense vs Transfer) */
     .mode-switcher {
       display: grid;
@@ -614,14 +595,9 @@
         </div>
       </div>
 
-      <div class="filter-bar">
-        <button class="filter-btn active" id="f-life" onclick="setFilter('lifestyle')">Daily Spending (7)</button>
-        <button class="filter-btn" id="f-all" onclick="setFilter('all')">All Envelopes (21)</button>
-      </div>
-
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title" id="panel-title">Active Envelopes</span>
+          <span class="panel-title" id="panel-title">All Envelopes</span>
           <span style="font-size: 0.72rem; color: var(--text-muted);">Tap any envelope for history</span>
         </div>
         <div id="envelopes-container">
@@ -696,7 +672,6 @@
               <option value="Rent">Rent</option>
               <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
               <option value="Phones">Phones</option>
-              <option value="Internet">Internet</option>
               <option value="Insurance">Insurance</option>
               <option value="Utilities">Utilities</option>
               <option value="Interest Charge">Interest Charge</option>
@@ -754,7 +729,7 @@
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Total Monthly Fixed</div>
-          <div class="kpi-val" id="bills-kpi-total">$5,399.29</div>
+          <div class="kpi-val" id="bills-kpi-total">$5,344.19</div>
         </div>
       </div>
 
@@ -805,31 +780,26 @@
             <div class="form-group">
               <label>Category Envelope</label>
               <select id="tx-envelope" onchange="onEnvelopeSelected(this.value)">
-                <optgroup label="Daily Living">
-                  <option value="Groceries">Groceries</option>
-                  <option value="Food">Food (Dining Out)</option>
-                  <option value="Car">Car</option>
-                  <option value="Entertainment">Entertainment</option>
-                  <option value="Beauty/Clothes">Beauty/Clothes</option>
-                  <option value="House">House</option>
-                  <option value="Miscellaneous">Miscellaneous</option>
-                </optgroup>
-                <optgroup label="Monthly Envelopes">
-                  <option value="Teaching">Teaching</option>
-                  <option value="School">School</option>
-                  <option value="Travel">Travel</option>
-                  <option value="Body/Health">Body/Health</option>
-                  <option value="Christmas/Gifts">Christmas/Gifts</option>
-                  <option value="Rent">Rent</option>
-                  <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
-                  <option value="Phones">Phones</option>
-                  <option value="Internet">Internet</option>
-                  <option value="Insurance">Insurance</option>
-                  <option value="Utilities">Utilities</option>
-                  <option value="Interest Charge">Interest Charge</option>
-                  <option value="Cash">Cash</option>
-                  <option value="USAA Debt Loan">USAA Debt Loan</option>
-                </optgroup>
+                <option value="Groceries">Groceries</option>
+                <option value="Food">Food (Dining Out)</option>
+                <option value="Car">Car</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Beauty/Clothes">Beauty/Clothes</option>
+                <option value="House">House</option>
+                <option value="Miscellaneous">Miscellaneous</option>
+                <option value="Teaching">Teaching</option>
+                <option value="School">School</option>
+                <option value="Travel">Travel</option>
+                <option value="Body/Health">Body/Health</option>
+                <option value="Christmas/Gifts">Christmas/Gifts</option>
+                <option value="Rent">Rent</option>
+                <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
+                <option value="Phones">Phones</option>
+                <option value="Insurance">Insurance</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Interest Charge">Interest Charge</option>
+                <option value="Cash">Cash</option>
+                <option value="USAA Debt Loan">USAA Debt Loan</option>
               </select>
             </div>
 
@@ -1014,6 +984,7 @@
       { day: 11, payee: "SiriusXM Radio", account: "Chase", amount: -11.99, isIncome: false },
       { day: 12, payee: "USAA CC Interest", account: "USAA Credit Card", amount: -110.52, isIncome: false },
       { day: 13, payee: "Disney+", account: "Chase", amount: -21.49, isIncome: false },
+      { day: 13, payee: "NY Times", account: "Chase", amount: -4.00, isIncome: false },
       { day: 15, payee: "USAA Insurance", account: "USAA Checking", amount: -183.91, isIncome: false },
       { day: 15, payee: "Peacock TV", account: "USAA Credit Card", amount: -26.99, isIncome: false },
       { day: 16, payee: "Max", account: "Chase", amount: -19.65, isIncome: false },
@@ -1048,6 +1019,7 @@
           { day: 7,  payee: "Canva Pro", envelope: "Teaching", account: "Chase", amount: 15.00, auto: true },
           { day: 11, payee: "SiriusXM Radio", envelope: "Streaming/Subscriptions", account: "Chase", amount: 11.99, auto: true },
           { day: 13, payee: "Disney+", envelope: "Streaming/Subscriptions", account: "Chase", amount: 21.49, auto: true },
+          { day: 13, payee: "NY Times", envelope: "Streaming/Subscriptions", account: "Chase", amount: 4.00, auto: true },
           { day: 16, payee: "Max", envelope: "Streaming/Subscriptions", account: "Chase", amount: 19.65, auto: true },
           { day: 17, payee: "Chase Interest", envelope: "Interest Charge", account: "Chase", amount: 387.00, auto: true },
           { day: 20, payee: "La Roche", envelope: "Beauty/Clothes", account: "Chase", amount: 68.82, auto: true },
@@ -1101,7 +1073,6 @@
       "Miscellaneous": "USAA Credit Card",
       "Body/Health": "USAA Credit Card",
       "Phones": "USAA Credit Card",
-      "Internet": "USAA Credit Card",
       "Rent": "USAA Checking",
       "USAA Debt Loan": "USAA Checking",
       "Insurance": "USAA Checking",
@@ -1116,7 +1087,6 @@
     let rawEnvelopes = [];
     let rawAccounts = [];
     let rawTransactions = [];
-    let currentFilter = 'lifestyle';
     let isSplitMode = false;
 
     function initDate() {
@@ -1145,13 +1115,6 @@
     function setTransferPreset(fromAcct, toAcct) {
       document.getElementById('tr-from').value = fromAcct;
       document.getElementById('tr-to').value = toAcct;
-    }
-
-    function setFilter(type) {
-      currentFilter = type;
-      document.getElementById('f-life').classList.toggle('active', type === 'lifestyle');
-      document.getElementById('f-all').classList.toggle('active', type === 'all');
-      renderDashboard();
     }
 
     function toggleSplitMode() {
@@ -1197,7 +1160,7 @@
         "commissary": "Groceries", "aldi": "Groceries", "hy-vee": "Groceries",
         "sephora": "Beauty/Clothes", "ulta": "Beauty/Clothes", "torrid": "Beauty/Clothes", "old navy": "Beauty/Clothes",
         "theater": "Entertainment", "amc": "Entertainment", "b&b": "Entertainment",
-        "integrity": "Rent", "evergy": "Utilities", "socket": "Internet", "water": "Utilities"
+        "integrity": "Rent", "evergy": "Utilities", "water": "Utilities"
       };
       for (const [k, v] of Object.entries(map)) {
         if (lower.includes(k)) {
@@ -1237,7 +1200,6 @@
       }
     }
 
-    /* NEXT 4 SCHEDULED TRANSACTIONS STRIP */
     function renderUpcomingTiles() {
       const container = document.getElementById('upcoming-tiles-container');
       if (!container) return;
@@ -1248,7 +1210,6 @@
       const currentMonth = now.getMonth();
       const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-      // Track items already posted in the current month so posted items skip ahead cleanly
       const postedThisMonth = {};
       rawTransactions.forEach(t => {
         if (!t.date) return;
@@ -1270,7 +1231,6 @@
           const evDate = new Date(yr, mo, clampedDay);
           if (evDate < todayZero) return;
 
-          // If it's this month and already cleared in the ledger, skip it
           if (mOffset === 0 && clampedDay === now.getDate()) {
             const pLower = ev.payee.toLowerCase();
             if (postedThisMonth[pLower] || (pLower.includes("air force") && postedThisMonth["air force mid-month"])) {
@@ -1291,7 +1251,6 @@
         });
       }
 
-      // Sort chronologically; on the same date, show income deposits first
       candidates.sort((a, b) => {
         if (a.dateObj.getTime() !== b.dateObj.getTime()) return a.dateObj - b.dateObj;
         return (b.isIncome ? 1 : 0) - (a.isIncome ? 1 : 0);
@@ -1334,9 +1293,18 @@
       let totalVarRemaining = 0;
 
       rawEnvelopes.forEach(env => {
-        if (!env.category || env.category.toLowerCase() === 'total') return;
-        const isLife = LIFESTYLE.includes(env.category);
+        if (!env.category) return;
+        const catLower = env.category.toLowerCase().trim();
+        // Exclude summary/header rows and Internet
+        if (
+          catLower === 'total' ||
+          catLower === 'internet' ||
+          catLower.includes('monthly budget') ||
+          catLower.includes('spending status') ||
+          catLower === 'category'
+        ) return;
 
+        const isLife = LIFESTYLE.includes(env.category);
         const spent = Math.abs(parseFloat(env.spent) || 0);
         const target = parseFloat(env.target) || 0;
         const remaining = target - spent;
@@ -1347,8 +1315,6 @@
         if (isLife) {
           totalVarRemaining += Math.max(0, remaining);
         }
-
-        if (currentFilter === 'lifestyle' && !isLife) return;
 
         const isOver = remaining < 0;
         const barColor = isOver ? 'var(--negative)' : (rawPct < 25 ? 'var(--warning)' : 'var(--accent)');
@@ -1410,13 +1376,11 @@
       });
     }
 
-    /* CLICK ACCOUNT -> SWITCH TO HISTORY TAB FILTERED BY THAT ACCOUNT */
     function filterHistoryByAccount(accountName) {
       const acctSelect = document.getElementById('filter-account');
       document.getElementById('filter-envelope').value = 'ALL';
       document.getElementById('filter-payee').value = '';
 
-      // Match option value case-insensitively or add dynamically if needed
       let matched = false;
       for (let i = 0; i < acctSelect.options.length; i++) {
         if (acctSelect.options[i].value.toLowerCase() === accountName.toLowerCase()) {
