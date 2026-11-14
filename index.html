@@ -549,11 +549,121 @@
       font-weight: 500; 
       z-index: 100;
     }
+
+    /* Duplicate Confirmation Modal */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 11, 15, 0.78);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.open {
+      display: flex;
+    }
+    .modal-card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-lg);
+      max-width: 400px;
+      width: 100%;
+      padding: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    }
+    .modal-badge {
+      display: inline-block;
+      background: rgba(245, 158, 11, 0.16);
+      color: var(--warning);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .modal-body {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 14px;
+    }
+    .modal-match-box {
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-bottom: 16px;
+      font-size: 0.8rem;
+    }
+    .modal-match-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .modal-match-row:last-child { margin-bottom: 0; }
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .btn-modal-no {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--surface-border);
+      padding: 10px;
+      border-radius: var(--radius-md);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-modal-no:hover {
+      background: #232834;
+    }
+    .btn-modal-yes {
+      background: var(--warning);
+      color: #0f1115;
+      border: none;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-modal-yes:hover {
+      opacity: 0.92;
+    }
   </style>
 </head>
 <body>
 
   <div id="toast">✓ Saved to Google Sheet</div>
+
+  <!-- DUPLICATE TRANSACTION POPUP MODAL -->
+  <div class="modal-backdrop" id="duplicate-modal">
+    <div class="modal-card">
+      <div class="modal-badge">Possible Duplicate</div>
+      <div class="modal-title">Already in Your Ledger</div>
+      <div class="modal-body">
+        A transaction with the same name, date, and amount already exists. Do you still want to log this one?
+      </div>
+      <div class="modal-match-box" id="duplicate-match-details"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal-no" onclick="resolveDuplicateModal(false)">No, Cancel</button>
+        <button type="button" class="btn-modal-yes" onclick="resolveDuplicateModal(true)">Yes, Log Anyway</button>
+      </div>
+    </div>
+  </div>
 
   <header>
     <div class="brand">
@@ -1088,6 +1198,57 @@
     let rawAccounts = [];
     let rawTransactions = [];
     let isSplitMode = false;
+    let duplicateResolveFn = null;
+
+    /* DUPLICATE DETECTION HELPER */
+    function findDuplicateTransaction(dateStr, payeeStr, absAmount) {
+      const targetPayee = (payeeStr || "").toLowerCase().trim();
+      const targetAmt = Math.round(Math.abs(parseFloat(absAmount) || 0) * 100);
+      if (!dateStr || !targetPayee || targetAmt === 0) return null;
+
+      return rawTransactions.find(t => {
+        if (!t.date || t.date !== dateStr) return false;
+        const existingPayee = (t.payee || "").toLowerCase().trim();
+        const existingAmt = Math.round(Math.abs(parseFloat(t.amount) || 0) * 100);
+        return existingPayee === targetPayee && existingAmt === targetAmt;
+      }) || null;
+    }
+
+    function confirmDuplicatePopup(match) {
+      return new Promise(resolve => {
+        duplicateResolveFn = resolve;
+        const detailsBox = document.getElementById('duplicate-match-details');
+        const amtVal = parseFloat(match.amount) || 0;
+        detailsBox.innerHTML = `
+          <div class="modal-match-row">
+            <span style="color: var(--text-muted);">Payee:</span>
+            <span style="font-weight: 600;">${match.payee}</span>
+          </div>
+          <div class="modal-match-row">
+            <span style="color: var(--text-muted);">Date:</span>
+            <span>${match.date}</span>
+          </div>
+          <div class="modal-match-row">
+            <span style="color: var(--text-muted);">Amount:</span>
+            <span style="font-weight: 600;">${amtVal < 0 ? '-' : '+'}$${Math.abs(amtVal).toFixed(2)}</span>
+          </div>
+          <div class="modal-match-row">
+            <span style="color: var(--text-muted);">Account / Env:</span>
+            <span>${match.account || 'N/A'} • ${match.envelope || 'N/A'}</span>
+          </div>
+        `;
+        document.getElementById('duplicate-modal').classList.add('open');
+      });
+    }
+
+    function resolveDuplicateModal(proceed) {
+      document.getElementById('duplicate-modal').classList.remove('open');
+      if (duplicateResolveFn) {
+        const fn = duplicateResolveFn;
+        duplicateResolveFn = null;
+        fn(proceed);
+      }
+    }
 
     function initDate() {
       const today = new Date();
@@ -1295,7 +1456,6 @@
       rawEnvelopes.forEach(env => {
         if (!env.category) return;
         const catLower = env.category.toLowerCase().trim();
-        // Exclude summary/header rows and Internet
         if (
           catLower === 'total' ||
           catLower === 'internet' ||
@@ -1520,13 +1680,19 @@
     }
 
     async function payManualBill(payee, env, acct, amt) {
-      if (!confirm(`Post ${payee} ($${amt.toFixed(2)}) to Google Sheet now?`)) return;
-
       const today = new Date();
       const yyyy = today.getFullYear();
       const mm = String(today.getMonth() + 1).padStart(2, '0');
       const dd = String(today.getDate()).padStart(2, '0');
       const dateStr = `${yyyy}-${mm}-${dd}`;
+
+      const dup = findDuplicateTransaction(dateStr, payee, amt);
+      if (dup) {
+        const ok = await confirmDuplicatePopup(dup);
+        if (!ok) return;
+      } else if (!confirm(`Post ${payee} ($${amt.toFixed(2)}) to Google Sheet now?`)) {
+        return;
+      }
 
       showToast(`Posting ${payee}...`);
 
@@ -1748,14 +1914,32 @@
 
     async function submitTransaction(e) {
       e.preventDefault();
-      const btn = document.getElementById('btn-save');
-      btn.innerText = "Posting...";
-      btn.disabled = true;
-
       const dateVal = document.getElementById('tx-date').value;
       const payee = document.getElementById('tx-payee').value.trim();
       const account = document.getElementById('tx-account').value;
       const baseNote = document.getElementById('tx-notes').value.trim();
+
+      // Check for duplicate before posting
+      if (isSplitMode) {
+        const amt1 = parseFloat(document.getElementById('split-amt-1').value) || 0;
+        const amt2 = parseFloat(document.getElementById('split-amt-2').value) || 0;
+        const dup = findDuplicateTransaction(dateVal, payee, amt1) || findDuplicateTransaction(dateVal, payee, amt2);
+        if (dup) {
+          const proceed = await confirmDuplicatePopup(dup);
+          if (!proceed) return;
+        }
+      } else {
+        const rawAmt = Math.abs(parseFloat(document.getElementById('tx-amount').value) || 0);
+        const dup = findDuplicateTransaction(dateVal, payee, rawAmt);
+        if (dup) {
+          const proceed = await confirmDuplicatePopup(dup);
+          if (!proceed) return;
+        }
+      }
+
+      const btn = document.getElementById('btn-save');
+      btn.innerText = "Posting...";
+      btn.disabled = true;
 
       try {
         if (isSplitMode) {
@@ -1811,19 +1995,27 @@
         return;
       }
 
+      const dateVal = document.getElementById('tr-date').value;
+      const amount = Math.abs(parseFloat(document.getElementById('tr-amount').value) || 0);
+      const outPayee = `Transfer to ${toAcct}`;
+
+      const dup = findDuplicateTransaction(dateVal, outPayee, amount);
+      if (dup) {
+        const proceed = await confirmDuplicatePopup(dup);
+        if (!proceed) return;
+      }
+
       const btn = document.getElementById('btn-transfer-save');
       btn.innerText = "Executing Transfer...";
       btn.disabled = true;
 
-      const dateVal = document.getElementById('tr-date').value;
-      const amount = Math.abs(parseFloat(document.getElementById('tr-amount').value));
       const baseNote = document.getElementById('tr-notes').value.trim();
       const noteSuffix = baseNote ? ` - ${baseNote}` : "";
 
       try {
         await postPayload({
           date: dateVal,
-          payee: `Transfer to ${toAcct}`,
+          payee: outPayee,
           account: fromAcct,
           envelope: "Transfer",
           amount: -amount,
