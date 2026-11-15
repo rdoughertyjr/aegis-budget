@@ -358,12 +358,33 @@
       align-items: center; 
       padding: 9px 0; 
       border-bottom: 1px solid rgba(255, 255, 255, 0.03); 
+      gap: 10px;
     }
     .tx-item:last-child { border-bottom: none; }
-    .tx-left { display: flex; flex-direction: column; gap: 2px; }
+    .tx-left { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
     .tx-payee { font-size: 0.84rem; font-weight: 500; }
     .tx-sub { font-size: 0.7rem; color: var(--text-dim); }
+    .tx-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
     .tx-amt { font-size: 0.86rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .btn-tx-del {
+      background: transparent;
+      border: 1px solid var(--surface-border);
+      color: var(--text-dim);
+      width: 24px;
+      height: 24px;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .btn-tx-del:hover, .btn-tx-del:active {
+      border-color: var(--negative);
+      color: var(--negative);
+      background: rgba(239, 68, 68, 0.12);
+    }
 
     /* Form & Chips */
     .form-group { margin-bottom: 12px; }
@@ -394,14 +415,15 @@
       background: var(--surface-elevated); 
       border: 1px solid var(--surface-border); 
       color: var(--text); 
-      padding: 5px 11px;
+      padding: 6px 12px;
       border-radius: 16px; 
       font-size: 0.76rem; 
       white-space: nowrap; 
       cursor: pointer; 
       font-weight: 500;
+      transition: border-color 0.15s, background 0.15s;
     }
-    .chip:hover { border-color: var(--accent); }
+    .chip:hover, .chip:active { border-color: var(--accent); background: #232834; }
 
     .btn {
       width: 100%; 
@@ -550,7 +572,7 @@
       z-index: 100;
     }
 
-    /* Duplicate Confirmation Modal */
+    /* Confirmation Modal */
     .modal-backdrop {
       display: none;
       position: fixed;
@@ -585,6 +607,10 @@
       padding: 3px 8px;
       border-radius: 4px;
       margin-bottom: 10px;
+    }
+    .modal-badge.danger {
+      background: rgba(239, 68, 68, 0.16);
+      color: var(--negative);
     }
     .modal-title {
       font-size: 1rem;
@@ -640,6 +666,10 @@
       font-weight: 700;
       cursor: pointer;
     }
+    .btn-modal-yes.danger {
+      background: var(--negative);
+      color: #ffffff;
+    }
     .btn-modal-yes:hover {
       opacity: 0.92;
     }
@@ -649,18 +679,18 @@
 
   <div id="toast">✓ Saved to Google Sheet</div>
 
-  <!-- DUPLICATE TRANSACTION POPUP MODAL -->
-  <div class="modal-backdrop" id="duplicate-modal">
+  <!-- DUPLICATE / DELETE CONFIRMATION POPUP MODAL -->
+  <div class="modal-backdrop" id="confirm-modal">
     <div class="modal-card">
-      <div class="modal-badge">Possible Duplicate</div>
-      <div class="modal-title">Already in Your Ledger</div>
-      <div class="modal-body">
+      <div class="modal-badge" id="modal-badge">Possible Duplicate</div>
+      <div class="modal-title" id="modal-title">Already in Your Ledger</div>
+      <div class="modal-body" id="modal-body">
         A transaction with the same name, date, and amount already exists. Do you still want to log this one?
       </div>
-      <div class="modal-match-box" id="duplicate-match-details"></div>
+      <div class="modal-match-box" id="modal-match-details"></div>
       <div class="modal-actions">
-        <button type="button" class="btn-modal-no" onclick="resolveDuplicateModal(false)">No, Cancel</button>
-        <button type="button" class="btn-modal-yes" onclick="resolveDuplicateModal(true)">Yes, Log Anyway</button>
+        <button type="button" class="btn-modal-no" id="modal-no-btn" onclick="resolveConfirmModal(false)">No, Cancel</button>
+        <button type="button" class="btn-modal-yes" id="modal-yes-btn" onclick="resolveConfirmModal(true)">Yes, Log Anyway</button>
       </div>
     </div>
   </div>
@@ -859,7 +889,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title" id="entry-panel-title">Fast Expense Entry</span>
-          <span style="font-size:0.74rem; color:var(--text-muted);" id="offline-status-indicator">Frequent Spots</span>
+          <span style="font-size:0.74rem; color:var(--text-muted);" id="offline-status-indicator">Top Spots (Past Year)</span>
         </div>
 
         <!-- MODE SWITCHER: EXPENSE VS TRANSFER -->
@@ -870,13 +900,13 @@
 
         <!-- EXPENSE FORM SECTION -->
         <div id="expense-mode-section">
-          <label style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px; display:block; font-weight:600; text-transform:uppercase;">Quick Select:</label>
+          <label style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px; display:block; font-weight:600; text-transform:uppercase;">Quick Select (Most Visited):</label>
           <div class="chip-scroll" id="dynamic-chips">
-            <div class="chip" onclick="setPayee('Walmart', 'Groceries', 'USAA Credit Card')">Walmart</div>
-            <div class="chip" onclick="setPayee('Amazon', 'Miscellaneous', 'Chase')">Amazon</div>
-            <div class="chip" onclick="setPayee('B&B Theaters', 'Entertainment', 'Chase')">B&B Theaters</div>
-            <div class="chip" onclick="setPayee('Aldi', 'Groceries', 'USAA Credit Card')">Aldi</div>
-            <div class="chip" onclick="setPayee('Caseys', 'Car', 'Chase')">Casey's</div>
+            <div class="chip" onclick="setPayee('Wal-Mart', 'Groceries', 'USAA Credit Card')">Wal-Mart</div>
+            <div class="chip" onclick="setPayee('Amazon', 'Teaching', 'USAA Credit Card')">Amazon</div>
+            <div class="chip" onclick="setPayee('B&B Theaters', 'Entertainment', 'USAA Credit Card')">B&B Theaters</div>
+            <div class="chip" onclick="setPayee('Aldi', 'Groceries', 'Chase')">Aldi</div>
+            <div class="chip" onclick="setPayee('Caseys', 'Car', 'Chase')">Caseys</div>
             <div class="chip" onclick="setPayee('McDonald\'s', 'Food', 'Chase')">McDonald's</div>
             <div class="chip" onclick="setPayee('Commissary', 'Groceries', 'USAA Credit Card')">Commissary</div>
           </div>
@@ -1082,7 +1112,6 @@
       { day: 20, payee: "Warrensburg Pay", account: "USAA Checking", amount: 2939.00, isIncome: true }
     ];
 
-    // Fallback bills list used only if offline before initial sheet sync
     const FALLBACK_BILLS = [
       { day: 1,  payee: "Rent + HOA", envelope: "Rent", account: "USAA Checking", section: "USAA Checking", amount: 1577.49, auto: true, paid: false },
       { day: 1,  payee: "USAA Debt Loan", envelope: "USAA Debt Loan", account: "USAA Checking", section: "USAA Checking", amount: 835.19, auto: true, paid: false },
@@ -1150,27 +1179,24 @@
     let rawBills = [...FALLBACK_BILLS];
     let rawTransactions = [];
     let isSplitMode = false;
-    let duplicateResolveFn = null;
+    let confirmResolveFn = null;
 
-    function findDuplicateTransaction(dateStr, payeeStr, absAmount) {
-      const targetPayee = (payeeStr || "").toLowerCase().trim();
-      const targetAmt = Math.round(Math.abs(parseFloat(absAmount) || 0) * 100);
-      if (!dateStr || !targetPayee || targetAmt === 0) return null;
-
-      return rawTransactions.find(t => {
-        if (!t.date || t.date !== dateStr) return false;
-        const existingPayee = (t.payee || "").toLowerCase().trim();
-        const existingAmt = Math.round(Math.abs(parseFloat(t.amount) || 0) * 100);
-        return existingPayee === targetPayee && existingAmt === targetAmt;
-      }) || null;
-    }
-
-    function confirmDuplicatePopup(match) {
+    /* UNIFIED CONFIRMATION MODAL (DUPLICATES & DELETIONS) */
+    function showConfirmModal({ badge, title, body, match, yesText, isDanger }) {
       return new Promise(resolve => {
-        duplicateResolveFn = resolve;
-        const detailsBox = document.getElementById('duplicate-match-details');
+        confirmResolveFn = resolve;
+        const badgeEl = document.getElementById('modal-badge');
+        const yesBtn = document.getElementById('modal-yes-btn');
+        badgeEl.innerText = badge;
+        badgeEl.className = isDanger ? 'modal-badge danger' : 'modal-badge';
+        yesBtn.innerText = yesText;
+        yesBtn.className = isDanger ? 'btn-modal-yes danger' : 'btn-modal-yes';
+
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-body').innerText = body;
+
         const amtVal = parseFloat(match.amount) || 0;
-        detailsBox.innerHTML = `
+        document.getElementById('modal-match-details').innerHTML = `
           <div class="modal-match-row">
             <span style="color: var(--text-muted);">Payee:</span>
             <span style="font-weight: 600;">${match.payee}</span>
@@ -1188,17 +1214,157 @@
             <span>${match.account || 'N/A'} • ${match.envelope || 'N/A'}</span>
           </div>
         `;
-        document.getElementById('duplicate-modal').classList.add('open');
+        document.getElementById('confirm-modal').classList.add('open');
       });
     }
 
-    function resolveDuplicateModal(proceed) {
-      document.getElementById('duplicate-modal').classList.remove('open');
-      if (duplicateResolveFn) {
-        const fn = duplicateResolveFn;
-        duplicateResolveFn = null;
+    function resolveConfirmModal(proceed) {
+      document.getElementById('confirm-modal').classList.remove('open');
+      if (confirmResolveFn) {
+        const fn = confirmResolveFn;
+        confirmResolveFn = null;
         fn(proceed);
       }
+    }
+
+    /* DELETE TRANSACTION FROM HISTORY */
+    async function requestDeleteTransaction(rowNum) {
+      const tx = rawTransactions.find(t => t.rowNum === rowNum);
+      if (!tx) {
+        showToast("Syncing ledger first...");
+        await fetchSheetData();
+        return;
+      }
+
+      const confirmed = await showConfirmModal({
+        badge: "Delete Entry",
+        title: "Remove Transaction?",
+        body: "This will permanently delete this row from your Google Sheet and recalculate your balances.",
+        match: tx,
+        yesText: "Yes, Delete Row",
+        isDanger: true
+      });
+
+      if (!confirmed) return;
+
+      showToast(`Deleting ${tx.payee}...`);
+
+      try {
+        await postPayload({
+          action: "delete",
+          rowNum: tx.rowNum,
+          payee: tx.payee,
+          amount: tx.amount
+        });
+
+        // Optimistically remove locally so UI updates instantaneously
+        rawTransactions = rawTransactions.filter(t => t.rowNum !== rowNum);
+        applyTxFilters();
+        showToast(`✓ Removed ${tx.payee}`);
+        setTimeout(fetchSheetData, 1200);
+      } catch (err) {
+        alert("Error deleting row: " + err);
+      }
+    }
+
+    /* DYNAMIC TOP 7 PAYEES FROM TRAILING 365 DAYS */
+    function renderDynamicChips() {
+      const container = document.getElementById('dynamic-chips');
+      if (!container || !rawTransactions || rawTransactions.length === 0) return;
+
+      const excludedEnvelopes = new Set([
+        "transfer", "income", "interest charge", "rent",
+        "usaa debt loan", "insurance", "phones", "streaming/subscriptions"
+      ]);
+
+      const fixedPayees = new Set([
+        "air force pay", "warrensburg pay", "rent + hoa", "usaa debt loan",
+        "amex payment", "baseline reconciliation", "warrensburg sewer",
+        "storage unit", "orderlymeds", "evergy", "american water"
+      ]);
+      rawBills.forEach(b => {
+        if (b.payee) fixedPayees.add(b.payee.replace(/\([^)]*\)/g, "").trim().toLowerCase());
+      });
+
+      const stats = {};
+
+      rawTransactions.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        if (amt >= 0) return;
+
+        const env = (t.envelope || "").trim();
+        const envLower = env.toLowerCase();
+        if (!env || excludedEnvelopes.has(envLower)) return;
+
+        const rawName = (t.payee || "").trim();
+        if (!rawName) return;
+
+        const normKey = rawName.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (!normKey || fixedPayees.has(rawName.toLowerCase())) return;
+        if (normKey.includes("transfer") || normKey.includes("interest") || normKey.includes("baseline")) return;
+
+        if (!stats[normKey]) {
+          stats[normKey] = {
+            displayName: rawName,
+            count: 0,
+            envCounts: {},
+            acctCounts: {}
+          };
+        }
+
+        const entry = stats[normKey];
+        entry.count += 1;
+        if (entry.count === 1) entry.displayName = rawName;
+
+        entry.envCounts[env] = (entry.envCounts[env] || 0) + 1;
+        const acct = (t.account || "").trim();
+        if (acct) {
+          entry.acctCounts[acct] = (entry.acctCounts[acct] || 0) + 1;
+        }
+      });
+
+      const ranked = Object.values(stats)
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 7);
+
+      if (ranked.length === 0) return;
+
+      container.innerHTML = "";
+      ranked.forEach(item => {
+        const bestEnv = Object.entries(item.envCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "Miscellaneous";
+        const bestAcct = Object.entries(item.acctCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || ENVELOPE_ACCOUNT_ROUTING[bestEnv] || "Chase";
+
+        const chip = document.createElement('div');
+        chip.className = 'chip';
+        chip.title = `${item.displayName} (${item.count} visits • ${bestEnv} • ${bestAcct})`;
+        chip.innerText = item.displayName;
+        chip.onclick = () => setPayee(item.displayName, bestEnv, bestAcct);
+        container.appendChild(chip);
+      });
+    }
+
+    function findDuplicateTransaction(dateStr, payeeStr, absAmount) {
+      const targetPayee = (payeeStr || "").toLowerCase().trim();
+      const targetAmt = Math.round(Math.abs(parseFloat(absAmount) || 0) * 100);
+      if (!dateStr || !targetPayee || targetAmt === 0) return null;
+
+      return rawTransactions.find(t => {
+        if (!t.date || t.date !== dateStr) return false;
+        const existingPayee = (t.payee || "").toLowerCase().trim();
+        const existingAmt = Math.round(Math.abs(parseFloat(t.amount) || 0) * 100);
+        return existingPayee === targetPayee && existingAmt === targetAmt;
+      }) || null;
+    }
+
+    function confirmDuplicatePopup(match) {
+      return showConfirmModal({
+        badge: "Possible Duplicate",
+        title: "Already in Your Ledger",
+        body: "A transaction with the same name, date, and amount already exists. Do you still want to log this one?",
+        match: match,
+        yesText: "Yes, Log Anyway",
+        isDanger: false
+      });
     }
 
     function initDate() {
@@ -1304,6 +1470,7 @@
         renderDashboard();
         renderAccounts();
         renderBillsChecklist();
+        renderDynamicChips();
         applyTxFilters();
         dot.classList.remove('syncing');
         status.innerText = "Google Sheet Live";
@@ -1315,7 +1482,6 @@
       }
     }
 
-    /* NEXT 4 SCHEDULED TRANSACTIONS STRIP (USES LIVE SHEET BILL AMOUNTS) */
     function renderUpcomingTiles() {
       const container = document.getElementById('upcoming-tiles-container');
       if (!container) return;
@@ -1335,7 +1501,6 @@
         }
       });
 
-      // Merge Paycheck Schedule + Live Bills from Sheet
       const combinedEvents = [
         ...PAYCHECK_SCHEDULE,
         ...rawBills.map(b => ({
@@ -1529,7 +1694,6 @@
       switchNav('transactions', document.getElementById('nav-transactions'));
     }
 
-    /* DYNAMIC BILLS CHECKLIST (GROUPED LIVE FROM 'Monthly Bills by Account') */
     function renderBillsChecklist() {
       const container = document.getElementById('bills-dynamic-container');
       if (!container) return;
@@ -1570,477 +1734,4 @@
       let totalPending = 0;
 
       sectionOrder.forEach(sec => {
-        const items = rawBills.filter(b => b.section === sec.key);
-        if (items.length === 0) return;
-
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'bill-group';
-
-        let grpTotal = 0;
-        items.forEach(it => grpTotal += parseFloat(it.amount) || 0);
-
-        const headDiv = document.createElement('div');
-        headDiv.className = 'bill-group-header';
-        headDiv.innerHTML = `<span>${sec.label}</span><span>$${grpTotal.toFixed(2)}/mo</span>`;
-        groupDiv.appendChild(headDiv);
-
-        items.forEach(item => {
-          const amt = parseFloat(item.amount) || 0;
-          totalCommitted += amt;
-          const cleanPayee = item.payee.replace(/\([^)]*\)/g, "").trim();
-          const pLower = cleanPayee.toLowerCase();
-          const aLower = (item.account || "").toLowerCase().trim();
-
-          const isCleared = item.paid ||
-                            clearedKeys[pLower + "|" + aLower] ||
-                            clearedKeys[pLower] ||
-                            (pLower.includes("rent") && clearedKeys["integrity rentals"]) ||
-                            (pLower.includes("water") && clearedKeys["american water"]);
-
-          if (isCleared) {
-            totalCleared += amt;
-          } else {
-            totalPending += amt;
-          }
-
-          const itemDiv = document.createElement('div');
-          itemDiv.className = `bill-item ${isCleared ? 'cleared' : ''}`;
-
-          let statusBadge = "";
-          if (isCleared) {
-            statusBadge = `<span class="tag-status-cleared">✓ Cleared</span>`;
-          } else if (item.day < currentDay) {
-            statusBadge = `<span class="tag-status-pending" style="color:var(--warning);">Due Day ${item.day}</span>`;
-          } else {
-            statusBadge = `<span class="tag-status-pending">Due Day ${item.day}</span>`;
-          }
-
-          let manualAction = "";
-          if (!item.auto && !isCleared) {
-            const safePayee = cleanPayee.replace(/'/g, "\\'");
-            manualAction = `<button class="btn-manual-pay" onclick="payManualBill('${safePayee}', '${item.envelope}', '${item.account}', ${amt})">Post to Sheet</button>`;
-          }
-
-          itemDiv.innerHTML = `
-            <div>
-              <strong>${item.payee}</strong>
-              <div style="font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:2px;">
-                ${item.auto ? '<span class="tag-auto">AutoPay</span>' : '<span class="tag-manual">Manual Pay</span>'}
-                ${statusBadge}
-              </div>
-            </div>
-            <div class="bill-right">
-              ${manualAction}
-              <span style="font-weight:600; font-variant-numeric: tabular-nums;">$${amt.toFixed(2)}</span>
-            </div>
-          `;
-          groupDiv.appendChild(itemDiv);
-        });
-
-        container.appendChild(groupDiv);
-      });
-
-      const annDiv = document.createElement('div');
-      annDiv.className = 'bill-group';
-      annDiv.innerHTML = `<div class="bill-group-header"><span>Annual Subscriptions Schedule</span><span>$551.98/yr (~$46/mo)</span></div>`;
-      ANNUAL_SUBS.forEach(ann => {
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'bill-item';
-        itemDiv.innerHTML = `
-          <div>
-            <strong>${ann.payee}</strong>
-            <div style="font-size:0.7rem;color:var(--text-muted);">${monthNames[ann.month - 1]} ${ann.day}</div>
-          </div>
-          <span style="font-weight:600; font-variant-numeric: tabular-nums;">$${ann.cost.toFixed(2)}</span>
-        `;
-        annDiv.appendChild(itemDiv);
-      });
-      container.appendChild(annDiv);
-
-      document.getElementById('bills-kpi-cleared').innerText = `$${totalCleared.toFixed(2)}`;
-      document.getElementById('bills-kpi-pending').innerText = `$${totalPending.toFixed(2)}`;
-      document.getElementById('bills-kpi-total').innerText = `$${totalCommitted.toFixed(2)}`;
-    }
-
-    async function payManualBill(payee, env, acct, amt) {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      const dateStr = `${yyyy}-${mm}-${dd}`;
-
-      const dup = findDuplicateTransaction(dateStr, payee, amt);
-      if (dup) {
-        const ok = await confirmDuplicatePopup(dup);
-        if (!ok) return;
-      } else if (!confirm(`Post ${payee} ($${amt.toFixed(2)}) to Google Sheet now?`)) {
-        return;
-      }
-
-      showToast(`Posting ${payee}...`);
-
-      try {
-        await postPayload({
-          date: dateStr,
-          payee: payee,
-          account: acct,
-          envelope: env,
-          amount: -Math.abs(amt),
-          notes: "Manual Bill Post via Aegis App"
-        });
-
-        showToast(`✓ Logged ${payee} ($${amt.toFixed(2)})`);
-        setTimeout(fetchSheetData, 1200);
-      } catch (err) {
-        alert("Error posting manual bill: " + err);
-      }
-    }
-
-    function applyTxFilters() {
-      const container = document.getElementById('master-tx-container');
-      const summaryTag = document.getElementById('tx-summary-tag');
-      if (!container) return;
-      container.innerHTML = "";
-
-      const envFilter = document.getElementById('filter-envelope').value;
-      const acctFilter = document.getElementById('filter-account').value;
-      const payeeSearch = document.getElementById('filter-payee').value.trim().toLowerCase();
-
-      let matchCount = 0;
-      let matchSum = 0;
-
-      const filtered = rawTransactions.filter(t => {
-        const matchesEnv = (envFilter === 'ALL') || (t.envelope && t.envelope.toLowerCase() === envFilter.toLowerCase());
-        const matchesAcct = (acctFilter === 'ALL') || (t.account && t.account.toLowerCase() === acctFilter.toLowerCase());
-        const matchesPayee = !payeeSearch || (t.payee && t.payee.toLowerCase().includes(payeeSearch)) || (t.notes && t.notes.toLowerCase().includes(payeeSearch));
-        return matchesEnv && matchesAcct && matchesPayee;
-      });
-
-      matchCount = filtered.length;
-      filtered.forEach(t => { matchSum += parseFloat(t.amount) || 0; });
-
-      if (summaryTag) {
-        summaryTag.innerText = `(${matchCount} items • ${matchSum < 0 ? '-' : ''}$${Math.abs(matchSum).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})`;
-      }
-
-      if (filtered.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 16px 0;">No matching transactions found.</p>`;
-        return;
-      }
-
-      const groups = {};
-      filtered.forEach(item => {
-        const ym = item.date ? item.date.substring(0, 7) : "Other";
-        if (!groups[ym]) groups[ym] = [];
-        groups[ym].push(item);
-      });
-
-      const sortedMonths = Object.keys(groups).sort().reverse();
-
-      sortedMonths.forEach(ym => {
-        const list = groups[ym];
-        const h = document.createElement('div');
-        h.className = 'month-header';
-        h.innerText = `${ym} (${list.length} Items)`;
-        container.appendChild(h);
-
-        list.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'tx-item';
-          const amt = parseFloat(item.amount);
-          const isNegative = amt < 0;
-          div.innerHTML = `
-            <div class="tx-left">
-              <span class="tx-payee">${item.payee}</span>
-              <span class="tx-sub">${item.date} • ${item.envelope || 'Uncategorized'} • ${item.account}${item.notes ? ' • ' + item.notes : ''}</span>
-            </div>
-            <span class="tx-amt" style="color: ${isNegative ? 'var(--text)' : 'var(--positive)'}">
-              ${isNegative ? '-' : '+'}$${Math.abs(amt).toFixed(2)}
-            </span>
-          `;
-          container.appendChild(div);
-        });
-      });
-    }
-
-    function resetTxFilters() {
-      document.getElementById('filter-envelope').value = 'ALL';
-      document.getElementById('filter-account').value = 'ALL';
-      document.getElementById('filter-payee').value = '';
-      applyTxFilters();
-    }
-
-    function openEnvelopeDetail(catName, target, spent, remaining) {
-      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
-      document.getElementById('view-detail').style.display = 'block';
-
-      document.getElementById('detail-env-title').innerText = catName;
-      document.getElementById('detail-target').innerText = `$${target.toFixed(2)}`;
-      document.getElementById('detail-spent').innerText = `-$${spent.toFixed(2)}`;
-      document.getElementById('detail-remaining').innerText = `$${remaining.toFixed(2)}`;
-      document.getElementById('detail-remaining').style.color = remaining < 0 ? 'var(--negative)' : 'var(--accent)';
-
-      renderEnvelopeTransactions(catName);
-    }
-
-    function closeEnvelopeDetail() {
-      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
-      document.getElementById('view-dashboard').style.display = 'block';
-    }
-
-    function renderEnvelopeTransactions(catName) {
-      const container = document.getElementById('detail-tx-container');
-      container.innerHTML = "";
-
-      const matches = rawTransactions.filter(t => t.envelope.toLowerCase() === catName.toLowerCase());
-
-      if (matches.length === 0) {
-        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 12px 0;">No transactions recorded for ${catName} in the last 60 days.</p>`;
-        return;
-      }
-
-      const thisMonth = [];
-      const lastMonth = [];
-
-      const now = new Date();
-      const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      
-      const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const prevYearMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
-
-      matches.forEach(t => {
-        const ym = t.date.substring(0, 7);
-        if (ym === currentYearMonth) {
-          thisMonth.push(t);
-        } else if (ym === prevYearMonth) {
-          lastMonth.push(t);
-        }
-      });
-
-      function buildList(list, label) {
-        if (list.length === 0) return;
-        const h = document.createElement('div');
-        h.className = 'month-header';
-        h.innerText = label;
-        container.appendChild(h);
-
-        list.forEach(item => {
-          const div = document.createElement('div');
-          div.className = 'tx-item';
-          const amt = parseFloat(item.amount);
-          const isNegative = amt < 0;
-          div.innerHTML = `
-            <div class="tx-left">
-              <span class="tx-payee">${item.payee}</span>
-              <span class="tx-sub">${item.date} • ${item.account}${item.notes ? ' • ' + item.notes : ''}</span>
-            </div>
-            <span class="tx-amt" style="color: ${isNegative ? 'var(--text)' : 'var(--positive)'}">
-              ${isNegative ? '-' : '+'}$${Math.abs(amt).toFixed(2)}
-            </span>
-          `;
-          container.appendChild(div);
-        });
-      }
-
-      buildList(thisMonth, `This Month (${currentYearMonth}) — ${thisMonth.length} Transactions`);
-      buildList(lastMonth, `Last Month (${prevYearMonth}) — ${lastMonth.length} Transactions`);
-    }
-
-    function switchNav(viewId, el) {
-      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-      document.getElementById('view-' + viewId).style.display = 'block';
-      if (el) el.classList.add('active');
-    }
-
-    async function postPayload(payload) {
-      if (!navigator.onLine) {
-        enqueueOffline(payload);
-        return;
-      }
-      try {
-        await fetch(SCRIPT_URL, {
-          method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-      } catch (err) {
-        enqueueOffline(payload);
-      }
-    }
-
-    function enqueueOffline(payload) {
-      const q = JSON.parse(localStorage.getItem('aegis_offline_queue') || '[]');
-      q.push(payload);
-      localStorage.setItem('aegis_offline_queue', JSON.stringify(q));
-      showToast(`⚡ Saved Offline (${q.length} queued)`);
-    }
-
-    async function flushOfflineQueue() {
-      const q = JSON.parse(localStorage.getItem('aegis_offline_queue') || '[]');
-      if (q.length === 0 || !navigator.onLine) return;
-      
-      showToast(`Syncing ${q.length} offline entries...`);
-      while (q.length > 0) {
-        const item = q.shift();
-        try {
-          await fetch(SCRIPT_URL, {
-            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(item)
-          });
-        } catch (e) {
-          q.unshift(item);
-          break;
-        }
-      }
-      localStorage.setItem('aegis_offline_queue', JSON.stringify(q));
-    }
-
-    async function submitTransaction(e) {
-      e.preventDefault();
-      const dateVal = document.getElementById('tx-date').value;
-      const payee = document.getElementById('tx-payee').value.trim();
-      const account = document.getElementById('tx-account').value;
-      const baseNote = document.getElementById('tx-notes').value.trim();
-
-      if (isSplitMode) {
-        const amt1 = parseFloat(document.getElementById('split-amt-1').value) || 0;
-        const amt2 = parseFloat(document.getElementById('split-amt-2').value) || 0;
-        const dup = findDuplicateTransaction(dateVal, payee, amt1) || findDuplicateTransaction(dateVal, payee, amt2);
-        if (dup) {
-          const proceed = await confirmDuplicatePopup(dup);
-          if (!proceed) return;
-        }
-      } else {
-        const rawAmt = Math.abs(parseFloat(document.getElementById('tx-amount').value) || 0);
-        const dup = findDuplicateTransaction(dateVal, payee, rawAmt);
-        if (dup) {
-          const proceed = await confirmDuplicatePopup(dup);
-          if (!proceed) return;
-        }
-      }
-
-      const btn = document.getElementById('btn-save');
-      btn.innerText = "Posting...";
-      btn.disabled = true;
-
-      try {
-        if (isSplitMode) {
-          const env1 = document.getElementById('split-env-1').value;
-          const amt1 = parseFloat(document.getElementById('split-amt-1').value);
-          const env2 = document.getElementById('split-env-2').value;
-          const amt2 = parseFloat(document.getElementById('split-amt-2').value);
-          const totalAmt = (amt1 + amt2).toFixed(2);
-
-          await postPayload({
-            date: dateVal, payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
-            notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
-          });
-
-          await postPayload({
-            date: dateVal, payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
-            notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
-          });
-
-          showToast("✓ Logged 2 Split Rows to Google Sheet");
-        } else {
-          const envelope = document.getElementById('tx-envelope').value;
-          const amount = -Math.abs(parseFloat(document.getElementById('tx-amount').value));
-
-          await postPayload({
-            date: dateVal, payee: payee, account: account, envelope: envelope, amount: amount,
-            notes: baseNote || "Via Aegis App"
-          });
-
-          showToast("✓ Saved to Google Sheet");
-        }
-
-        document.getElementById('tx-form').reset();
-        initDate();
-        onEnvelopeSelected(document.getElementById('tx-envelope').value);
-        if (isSplitMode) toggleSplitMode();
-        switchNav('dashboard', document.getElementById('nav-dashboard'));
-        setTimeout(fetchSheetData, 1200);
-      } catch (err) {
-        alert("Error posting: " + err);
-      } finally {
-        btn.innerText = "Log to Google Sheet";
-        btn.disabled = false;
-      }
-    }
-
-    async function submitTransfer(e) {
-      e.preventDefault();
-      const fromAcct = document.getElementById('tr-from').value;
-      const toAcct = document.getElementById('tr-to').value;
-      if (fromAcct === toAcct) {
-        alert("Source and destination accounts must be different.");
-        return;
-      }
-
-      const dateVal = document.getElementById('tr-date').value;
-      const amount = Math.abs(parseFloat(document.getElementById('tr-amount').value) || 0);
-      const outPayee = `Transfer to ${toAcct}`;
-
-      const dup = findDuplicateTransaction(dateVal, outPayee, amount);
-      if (dup) {
-        const proceed = await confirmDuplicatePopup(dup);
-        if (!proceed) return;
-      }
-
-      const btn = document.getElementById('btn-transfer-save');
-      btn.innerText = "Executing Transfer...";
-      btn.disabled = true;
-
-      const baseNote = document.getElementById('tr-notes').value.trim();
-      const noteSuffix = baseNote ? ` - ${baseNote}` : "";
-
-      try {
-        await postPayload({
-          date: dateVal,
-          payee: outPayee,
-          account: fromAcct,
-          envelope: "Transfer",
-          amount: -amount,
-          notes: `Account transfer outflow (${fromAcct} -> ${toAcct})${noteSuffix}`
-        });
-
-        await postPayload({
-          date: dateVal,
-          payee: `Transfer from ${fromAcct}`,
-          account: toAcct,
-          envelope: "Transfer",
-          amount: amount,
-          notes: `Account transfer inflow (${fromAcct} -> ${toAcct})${noteSuffix}`
-        });
-
-        showToast(`✓ Transferred $${amount.toFixed(2)} (${fromAcct} → ${toAcct})`);
-        document.getElementById('transfer-form').reset();
-        initDate();
-        setEntryMode('expense');
-        switchNav('accounts', document.getElementById('nav-accounts'));
-        setTimeout(fetchSheetData, 1200);
-      } catch (err) {
-        alert("Error executing transfer: " + err);
-      } finally {
-        btn.innerText = "Execute 2-Sided Transfer";
-        btn.disabled = false;
-      }
-    }
-
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 2400);
-    }
-
-    window.addEventListener('online', flushOfflineQueue);
-    window.addEventListener('DOMContentLoaded', () => {
-      initDate();
-      onEnvelopeSelected(document.getElementById('tx-envelope').value);
-      renderUpcomingTiles();
-      fetchSheetData();
-    });
-  </script>
-</body>
-</html>
+        const items = rawBills.filter(b => b.section ===
