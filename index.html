@@ -975,10 +975,24 @@
                     <select id="split-env-1">
                       <option value="Groceries">Groceries</option>
                       <option value="Food">Food (Dining Out)</option>
-                      <option value="House">House</option>
+                      <option value="Car">Car</option>
+                      <option value="Entertainment">Entertainment</option>
                       <option value="Beauty/Clothes">Beauty/Clothes</option>
-                      <option value="Teaching">Teaching</option>
+                      <option value="House">House</option>
                       <option value="Miscellaneous">Miscellaneous</option>
+                      <option value="Teaching">Teaching</option>
+                      <option value="School">School</option>
+                      <option value="Travel">Travel</option>
+                      <option value="Body/Health">Body/Health</option>
+                      <option value="Christmas/Gifts">Christmas/Gifts</option>
+                      <option value="Rent">Rent</option>
+                      <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
+                      <option value="Phones">Phones</option>
+                      <option value="Insurance">Insurance</option>
+                      <option value="Utilities">Utilities</option>
+                      <option value="Interest Charge">Interest Charge</option>
+                      <option value="Cash">Cash</option>
+                      <option value="USAA Debt Loan">USAA Debt Loan</option>
                     </select>
                   </div>
                   <div>
@@ -992,10 +1006,25 @@
                     <label style="font-size:0.68rem; color:var(--text-muted); text-transform:uppercase;">Envelope 2</label>
                     <select id="split-env-2">
                       <option value="House">House</option>
-                      <option value="Teaching">Teaching</option>
-                      <option value="Beauty/Clothes">Beauty/Clothes</option>
                       <option value="Groceries">Groceries</option>
+                      <option value="Food">Food (Dining Out)</option>
+                      <option value="Car">Car</option>
+                      <option value="Entertainment">Entertainment</option>
+                      <option value="Beauty/Clothes">Beauty/Clothes</option>
                       <option value="Miscellaneous">Miscellaneous</option>
+                      <option value="Teaching">Teaching</option>
+                      <option value="School">School</option>
+                      <option value="Travel">Travel</option>
+                      <option value="Body/Health">Body/Health</option>
+                      <option value="Christmas/Gifts">Christmas/Gifts</option>
+                      <option value="Rent">Rent</option>
+                      <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
+                      <option value="Phones">Phones</option>
+                      <option value="Insurance">Insurance</option>
+                      <option value="Utilities">Utilities</option>
+                      <option value="Interest Charge">Interest Charge</option>
+                      <option value="Cash">Cash</option>
+                      <option value="USAA Debt Loan">USAA Debt Loan</option>
                     </select>
                   </div>
                   <div>
@@ -1176,12 +1205,12 @@
 
     let rawEnvelopes = [];
     let rawAccounts = [];
+    let rawPaychecks = [...PAYCHECK_SCHEDULE];
     let rawBills = [...FALLBACK_BILLS];
     let rawTransactions = [];
     let isSplitMode = false;
     let confirmResolveFn = null;
 
-    /* UNIFIED CONFIRMATION MODAL (DUPLICATES & DELETIONS) */
     function showConfirmModal({ badge, title, body, match, yesText, isDanger }) {
       return new Promise(resolve => {
         confirmResolveFn = resolve;
@@ -1227,7 +1256,6 @@
       }
     }
 
-    /* DELETE TRANSACTION FROM HISTORY */
     async function requestDeleteTransaction(rowNum) {
       const tx = rawTransactions.find(t => t.rowNum === rowNum);
       if (!tx) {
@@ -1257,7 +1285,6 @@
           amount: tx.amount
         });
 
-        // Optimistically remove locally so UI updates instantaneously
         rawTransactions = rawTransactions.filter(t => t.rowNum !== rowNum);
         applyTxFilters();
         showToast(`✓ Removed ${tx.payee}`);
@@ -1267,7 +1294,6 @@
       }
     }
 
-    /* DYNAMIC TOP 7 PAYEES FROM TRAILING 365 DAYS */
     function renderDynamicChips() {
       const container = document.getElementById('dynamic-chips');
       if (!container || !rawTransactions || rawTransactions.length === 0) return;
@@ -1462,6 +1488,9 @@
         const data = await res.json();
         rawEnvelopes = data.envelopes || [];
         rawAccounts = data.accounts || [];
+        if (data.paychecks && data.paychecks.length > 0) {
+          rawPaychecks = data.paychecks;
+        }
         if (data.bills && data.bills.length > 0) {
           rawBills = data.bills;
         }
@@ -1502,7 +1531,7 @@
       });
 
       const combinedEvents = [
-        ...PAYCHECK_SCHEDULE,
+        ...rawPaychecks,
         ...rawBills.map(b => ({
           day: b.day,
           payee: b.payee.replace(/\([^)]*\)/g, "").trim(),
@@ -1734,4 +1763,483 @@
       let totalPending = 0;
 
       sectionOrder.forEach(sec => {
-        const items = rawBills.filter(b => b.section ===
+        const items = rawBills.filter(b => b.section === sec.key);
+        if (items.length === 0) return;
+
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'bill-group';
+
+        let grpTotal = 0;
+        items.forEach(it => grpTotal += parseFloat(it.amount) || 0);
+
+        const headDiv = document.createElement('div');
+        headDiv.className = 'bill-group-header';
+        headDiv.innerHTML = `<span>${sec.label}</span><span>$${grpTotal.toFixed(2)}/mo</span>`;
+        groupDiv.appendChild(headDiv);
+
+        items.forEach(item => {
+          const amt = parseFloat(item.amount) || 0;
+          totalCommitted += amt;
+          const cleanPayee = item.payee.replace(/\([^)]*\)/g, "").trim();
+          const pLower = cleanPayee.toLowerCase();
+          const aLower = (item.account || "").toLowerCase().trim();
+
+          const isCleared = item.paid ||
+                            clearedKeys[pLower + "|" + aLower] ||
+                            clearedKeys[pLower] ||
+                            (pLower.includes("rent") && clearedKeys["integrity rentals"]) ||
+                            (pLower.includes("water") && clearedKeys["american water"]);
+
+          if (isCleared) {
+            totalCleared += amt;
+          } else {
+            totalPending += amt;
+          }
+
+          const itemDiv = document.createElement('div');
+          itemDiv.className = `bill-item ${isCleared ? 'cleared' : ''}`;
+
+          let statusBadge = "";
+          if (isCleared) {
+            statusBadge = `<span class="tag-status-cleared">✓ Cleared</span>`;
+          } else if (item.day < currentDay) {
+            statusBadge = `<span class="tag-status-pending" style="color:var(--warning);">Due Day ${item.day}</span>`;
+          } else {
+            statusBadge = `<span class="tag-status-pending">Due Day ${item.day}</span>`;
+          }
+
+          let manualAction = "";
+          if (!item.auto && !isCleared) {
+            const safePayee = cleanPayee.replace(/'/g, "\\'");
+            manualAction = `<button class="btn-manual-pay" onclick="payManualBill('${safePayee}', '${item.envelope}', '${item.account}', ${amt})">Post to Sheet</button>`;
+          }
+
+          itemDiv.innerHTML = `
+            <div>
+              <strong>${item.payee}</strong>
+              <div style="font-size:0.7rem;color:var(--text-muted);display:flex;align-items:center;gap:4px;margin-top:2px;">
+                ${item.auto ? '<span class="tag-auto">AutoPay</span>' : '<span class="tag-manual">Manual Pay</span>'}
+                ${statusBadge}
+              </div>
+            </div>
+            <div class="bill-right">
+              ${manualAction}
+              <span style="font-weight:600; font-variant-numeric: tabular-nums;">$${amt.toFixed(2)}</span>
+            </div>
+          `;
+          groupDiv.appendChild(itemDiv);
+        });
+
+        container.appendChild(groupDiv);
+      });
+
+      const annDiv = document.createElement('div');
+      annDiv.className = 'bill-group';
+      annDiv.innerHTML = `<div class="bill-group-header"><span>Annual Subscriptions Schedule</span><span>$551.98/yr (~$46/mo)</span></div>`;
+      ANNUAL_SUBS.forEach(ann => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'bill-item';
+        itemDiv.innerHTML = `
+          <div>
+            <strong>${ann.payee}</strong>
+            <div style="font-size:0.7rem;color:var(--text-muted);">${monthNames[ann.month - 1]} ${ann.day}</div>
+          </div>
+          <span style="font-weight:600; font-variant-numeric: tabular-nums;">$${ann.cost.toFixed(2)}</span>
+        `;
+        annDiv.appendChild(itemDiv);
+      });
+      container.appendChild(annDiv);
+
+      document.getElementById('bills-kpi-cleared').innerText = `$${totalCleared.toFixed(2)}`;
+      document.getElementById('bills-kpi-pending').innerText = `$${totalPending.toFixed(2)}`;
+      document.getElementById('bills-kpi-total').innerText = `$${totalCommitted.toFixed(2)}`;
+    }
+
+    async function payManualBill(payee, env, acct, amt) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      const dateStr = `${yyyy}-${mm}-${dd}`;
+
+      const dup = findDuplicateTransaction(dateStr, payee, amt);
+      if (dup) {
+        const ok = await confirmDuplicatePopup(dup);
+        if (!ok) return;
+      } else if (!confirm(`Post ${payee} ($${amt.toFixed(2)}) to Google Sheet now?`)) {
+        return;
+      }
+
+      showToast(`Posting ${payee}...`);
+
+      try {
+        await postPayload({
+          date: dateStr,
+          payee: payee,
+          account: acct,
+          envelope: env,
+          amount: -Math.abs(amt),
+          notes: "Manual Bill Post via Aegis App"
+        });
+
+        showToast(`✓ Logged ${payee} ($${amt.toFixed(2)})`);
+        setTimeout(fetchSheetData, 1200);
+      } catch (err) {
+        alert("Error posting manual bill: " + err);
+      }
+    }
+
+    function applyTxFilters() {
+      const container = document.getElementById('master-tx-container');
+      const summaryTag = document.getElementById('tx-summary-tag');
+      if (!container) return;
+      container.innerHTML = "";
+
+      const envFilter = document.getElementById('filter-envelope').value;
+      const acctFilter = document.getElementById('filter-account').value;
+      const payeeSearch = document.getElementById('filter-payee').value.trim().toLowerCase();
+
+      let matchCount = 0;
+      let matchSum = 0;
+
+      const filtered = rawTransactions.filter(t => {
+        const matchesEnv = (envFilter === 'ALL') || (t.envelope && t.envelope.toLowerCase() === envFilter.toLowerCase());
+        const matchesAcct = (acctFilter === 'ALL') || (t.account && t.account.toLowerCase() === acctFilter.toLowerCase());
+        const matchesPayee = !payeeSearch || (t.payee && t.payee.toLowerCase().includes(payeeSearch)) || (t.notes && t.notes.toLowerCase().includes(payeeSearch));
+        return matchesEnv && matchesAcct && matchesPayee;
+      });
+
+      matchCount = filtered.length;
+      filtered.forEach(t => { matchSum += parseFloat(t.amount) || 0; });
+
+      if (summaryTag) {
+        summaryTag.innerText = `(${matchCount} items • ${matchSum < 0 ? '-' : ''}$${Math.abs(matchSum).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})})`;
+      }
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 16px 0;">No matching transactions found.</p>`;
+        return;
+      }
+
+      const groups = {};
+      filtered.forEach(item => {
+        const ym = item.date ? item.date.substring(0, 7) : "Other";
+        if (!groups[ym]) groups[ym] = [];
+        groups[ym].push(item);
+      });
+
+      const sortedMonths = Object.keys(groups).sort().reverse();
+
+      sortedMonths.forEach(ym => {
+        const list = groups[ym];
+        const h = document.createElement('div');
+        h.className = 'month-header';
+        h.innerText = `${ym} (${list.length} Items)`;
+        container.appendChild(h);
+
+        list.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'tx-item';
+          const amt = parseFloat(item.amount);
+          const isNegative = amt < 0;
+          const delBtn = item.rowNum
+            ? `<button type="button" class="btn-tx-del" title="Delete Entry" onclick="requestDeleteTransaction(${item.rowNum})">✕</button>`
+            : '';
+          div.innerHTML = `
+            <div class="tx-left">
+              <span class="tx-payee">${item.payee}</span>
+              <span class="tx-sub">${item.date} • ${item.envelope || 'Uncategorized'} • ${item.account}${item.notes ? ' • ' + item.notes : ''}</span>
+            </div>
+            <div class="tx-right">
+              <span class="tx-amt" style="color: ${isNegative ? 'var(--text)' : 'var(--positive)'}">
+                ${isNegative ? '-' : '+'}$${Math.abs(amt).toFixed(2)}
+              </span>
+              ${delBtn}
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      });
+    }
+
+    function resetTxFilters() {
+      document.getElementById('filter-envelope').value = 'ALL';
+      document.getElementById('filter-account').value = 'ALL';
+      document.getElementById('filter-payee').value = '';
+      applyTxFilters();
+    }
+
+    function openEnvelopeDetail(catName, target, spent, remaining) {
+      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+      document.getElementById('view-detail').style.display = 'block';
+
+      document.getElementById('detail-env-title').innerText = catName;
+      document.getElementById('detail-target').innerText = `$${target.toFixed(2)}`;
+      document.getElementById('detail-spent').innerText = `-$${spent.toFixed(2)}`;
+      document.getElementById('detail-remaining').innerText = `$${remaining.toFixed(2)}`;
+      document.getElementById('detail-remaining').style.color = remaining < 0 ? 'var(--negative)' : 'var(--accent)';
+
+      renderEnvelopeTransactions(catName);
+    }
+
+    function closeEnvelopeDetail() {
+      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+      document.getElementById('view-dashboard').style.display = 'block';
+    }
+
+    function renderEnvelopeTransactions(catName) {
+      const container = document.getElementById('detail-tx-container');
+      container.innerHTML = "";
+
+      const matches = rawTransactions.filter(t => t.envelope.toLowerCase() === catName.toLowerCase());
+
+      if (matches.length === 0) {
+        container.innerHTML = `<p style="color: var(--text-muted); font-size: 0.85rem; padding: 12px 0;">No transactions recorded for ${catName} in the last 60 days.</p>`;
+        return;
+      }
+
+      const thisMonth = [];
+      const lastMonth = [];
+
+      const now = new Date();
+      const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      
+      const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const prevYearMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+
+      matches.forEach(t => {
+        const ym = t.date.substring(0, 7);
+        if (ym === currentYearMonth) {
+          thisMonth.push(t);
+        } else if (ym === prevYearMonth) {
+          lastMonth.push(t);
+        }
+      });
+
+      function buildList(list, label) {
+        if (list.length === 0) return;
+        const h = document.createElement('div');
+        h.className = 'month-header';
+        h.innerText = label;
+        container.appendChild(h);
+
+        list.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'tx-item';
+          const amt = parseFloat(item.amount);
+          const isNegative = amt < 0;
+          div.innerHTML = `
+            <div class="tx-left">
+              <span class="tx-payee">${item.payee}</span>
+              <span class="tx-sub">${item.date} • ${item.account}${item.notes ? ' • ' + item.notes : ''}</span>
+            </div>
+            <span class="tx-amt" style="color: ${isNegative ? 'var(--text)' : 'var(--positive)'}">
+              ${isNegative ? '-' : '+'}$${Math.abs(amt).toFixed(2)}
+            </span>
+          `;
+          container.appendChild(div);
+        });
+      }
+
+      buildList(thisMonth, `This Month (${currentYearMonth}) — ${thisMonth.length} Transactions`);
+      buildList(lastMonth, `Last Month (${prevYearMonth}) — ${lastMonth.length} Transactions`);
+    }
+
+    function switchNav(viewId, el) {
+      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('view-' + viewId).style.display = 'block';
+      if (el) el.classList.add('active');
+    }
+
+    async function postPayload(payload) {
+      if (!navigator.onLine) {
+        enqueueOffline(payload);
+        return;
+      }
+      try {
+        await fetch(SCRIPT_URL, {
+          method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch (err) {
+        enqueueOffline(payload);
+      }
+    }
+
+    function enqueueOffline(payload) {
+      const q = JSON.parse(localStorage.getItem('aegis_offline_queue') || '[]');
+      q.push(payload);
+      localStorage.setItem('aegis_offline_queue', JSON.stringify(q));
+      showToast(`⚡ Saved Offline (${q.length} queued)`);
+    }
+
+    async function flushOfflineQueue() {
+      const q = JSON.parse(localStorage.getItem('aegis_offline_queue') || '[]');
+      if (q.length === 0 || !navigator.onLine) return;
+      
+      showToast(`Syncing ${q.length} offline entries...`);
+      while (q.length > 0) {
+        const item = q.shift();
+        try {
+          await fetch(SCRIPT_URL, {
+            method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(item)
+          });
+        } catch (e) {
+          q.unshift(item);
+          break;
+        }
+      }
+      localStorage.setItem('aegis_offline_queue', JSON.stringify(q));
+    }
+
+    async function submitTransaction(e) {
+      e.preventDefault();
+      const dateVal = document.getElementById('tx-date').value;
+      const payee = document.getElementById('tx-payee').value.trim();
+      const account = document.getElementById('tx-account').value;
+      const baseNote = document.getElementById('tx-notes').value.trim();
+
+      if (isSplitMode) {
+        const amt1 = parseFloat(document.getElementById('split-amt-1').value) || 0;
+        const amt2 = parseFloat(document.getElementById('split-amt-2').value) || 0;
+        const dup = findDuplicateTransaction(dateVal, payee, amt1) || findDuplicateTransaction(dateVal, payee, amt2);
+        if (dup) {
+          const proceed = await confirmDuplicatePopup(dup);
+          if (!proceed) return;
+        }
+      } else {
+        const rawAmt = Math.abs(parseFloat(document.getElementById('tx-amount').value) || 0);
+        const dup = findDuplicateTransaction(dateVal, payee, rawAmt);
+        if (dup) {
+          const proceed = await confirmDuplicatePopup(dup);
+          if (!proceed) return;
+        }
+      }
+
+      const btn = document.getElementById('btn-save');
+      btn.innerText = "Posting...";
+      btn.disabled = true;
+
+      try {
+        if (isSplitMode) {
+          const env1 = document.getElementById('split-env-1').value;
+          const amt1 = parseFloat(document.getElementById('split-amt-1').value);
+          const env2 = document.getElementById('split-env-2').value;
+          const amt2 = parseFloat(document.getElementById('split-amt-2').value);
+          const totalAmt = (amt1 + amt2).toFixed(2);
+
+          await postPayload({
+            date: dateVal, payee: payee, account: account, envelope: env1, amount: -Math.abs(amt1),
+            notes: `Split payment (1 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
+          });
+
+          await postPayload({
+            date: dateVal, payee: payee, account: account, envelope: env2, amount: -Math.abs(amt2),
+            notes: `Split payment (2 of 2) from $${totalAmt} at ${payee}${baseNote ? ' - ' + baseNote : ''}`
+          });
+
+          showToast("✓ Logged 2 Split Rows to Google Sheet");
+        } else {
+          const envelope = document.getElementById('tx-envelope').value;
+          const amount = -Math.abs(parseFloat(document.getElementById('tx-amount').value));
+
+          await postPayload({
+            date: dateVal, payee: payee, account: account, envelope: envelope, amount: amount,
+            notes: baseNote || "Via Aegis App"
+          });
+
+          showToast("✓ Saved to Google Sheet");
+        }
+
+        document.getElementById('tx-form').reset();
+        initDate();
+        onEnvelopeSelected(document.getElementById('tx-envelope').value);
+        if (isSplitMode) toggleSplitMode();
+        switchNav('dashboard', document.getElementById('nav-dashboard'));
+        setTimeout(fetchSheetData, 1200);
+      } catch (err) {
+        alert("Error posting: " + err);
+      } finally {
+        btn.innerText = "Log to Google Sheet";
+        btn.disabled = false;
+      }
+    }
+
+    async function submitTransfer(e) {
+      e.preventDefault();
+      const fromAcct = document.getElementById('tr-from').value;
+      const toAcct = document.getElementById('tr-to').value;
+      if (fromAcct === toAcct) {
+        alert("Source and destination accounts must be different.");
+        return;
+      }
+
+      const dateVal = document.getElementById('tr-date').value;
+      const amount = Math.abs(parseFloat(document.getElementById('tr-amount').value) || 0);
+      const outPayee = `Transfer to ${toAcct}`;
+
+      const dup = findDuplicateTransaction(dateVal, outPayee, amount);
+      if (dup) {
+        const proceed = await confirmDuplicatePopup(dup);
+        if (!proceed) return;
+      }
+
+      const btn = document.getElementById('btn-transfer-save');
+      btn.innerText = "Executing Transfer...";
+      btn.disabled = true;
+
+      const baseNote = document.getElementById('tr-notes').value.trim();
+      const noteSuffix = baseNote ? ` - ${baseNote}` : "";
+
+      try {
+        await postPayload({
+          date: dateVal,
+          payee: outPayee,
+          account: fromAcct,
+          envelope: "Transfer",
+          amount: -amount,
+          notes: `Account transfer outflow (${fromAcct} -> ${toAcct})${noteSuffix}`
+        });
+
+        await postPayload({
+          date: dateVal,
+          payee: `Transfer from ${fromAcct}`,
+          account: toAcct,
+          envelope: "Transfer",
+          amount: amount,
+          notes: `Account transfer inflow (${fromAcct} -> ${toAcct})${noteSuffix}`
+        });
+
+        showToast(`✓ Transferred $${amount.toFixed(2)} (${fromAcct} → ${toAcct})`);
+        document.getElementById('transfer-form').reset();
+        initDate();
+        setEntryMode('expense');
+        switchNav('accounts', document.getElementById('nav-accounts'));
+        setTimeout(fetchSheetData, 1200);
+      } catch (err) {
+        alert("Error executing transfer: " + err);
+      } finally {
+        btn.innerText = "Execute 2-Sided Transfer";
+        btn.disabled = false;
+      }
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 2400);
+    }
+
+    window.addEventListener('online', flushOfflineQueue);
+    window.addEventListener('DOMContentLoaded', () => {
+      initDate();
+      onEnvelopeSelected(document.getElementById('tx-envelope').value);
+      renderUpcomingTiles();
+      fetchSheetData();
+    });
+  </script>
+</body>
+</html>
