@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="Aegis" />
   <link rel="manifest" href="manifest.json" />
   <title>Aegis Budget — Household Money Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <style>
     :root {
       --bg: #0f1115;
@@ -329,6 +330,46 @@
     }
     .search-input:focus { border-color: var(--accent); }
 
+    /* Trends View */
+    .range-pills {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .range-pill {
+      background: var(--surface-elevated);
+      border: 1px solid var(--surface-border);
+      color: var(--text-muted);
+      padding: 6px 11px;
+      border-radius: 16px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .range-pill.active {
+      background: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .date-range-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .chart-wrapper {
+      position: relative;
+      width: 100%;
+      height: 270px;
+      background: var(--bg);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+
     /* Detail View */
     .detail-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
     .back-btn {
@@ -387,7 +428,7 @@
     }
 
     /* Form & Chips */
-    .form-group { margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; position: relative; }
     .form-group label { 
       display: block; 
       font-size: 0.72rem; 
@@ -408,6 +449,59 @@
       outline: none;
     }
     input:focus, select:focus { border-color: var(--accent); }
+
+    /* Payee Autocomplete Dropdown */
+    .autocomplete-list {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-md);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
+      z-index: 90;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .autocomplete-list.open {
+      display: block;
+    }
+    .autocomplete-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+    .autocomplete-item:last-child {
+      border-bottom: none;
+    }
+    .autocomplete-item:hover, .autocomplete-item:active {
+      background: #252b38;
+    }
+    .ac-name {
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .ac-name mark {
+      background: transparent;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .ac-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      background: var(--bg);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid var(--surface-border);
+    }
 
     /* Chips */
     .chip-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 12px; }
@@ -534,7 +628,7 @@
       justify-content: space-around;
       align-items: center; 
       z-index: 50; 
-      padding: 0 6px;
+      padding: 0 4px;
     }
     .nav-item {
       display: flex; 
@@ -542,7 +636,7 @@
       align-items: center; 
       gap: 3px;
       color: var(--text-muted); 
-      font-size: 0.68rem; 
+      font-size: 0.65rem; 
       cursor: pointer; 
       border: none; 
       background: none; 
@@ -554,7 +648,7 @@
       font-weight: 600; 
     }
     .nav-item.active svg { stroke: var(--accent); }
-    .nav-item svg { width: 19px; height: 19px; }
+    .nav-item svg { width: 18px; height: 18px; }
 
     #toast {
       display: none; 
@@ -884,7 +978,87 @@
       </div>
     </div>
 
-    <!-- VIEW 6: FAST EXPENSE & TRANSFER ENTRY -->
+    <!-- VIEW 6: SPENDING & INCOME TRENDS (CUSTOM TIMEFRAME CHARTS) -->
+    <div id="view-trends" class="view-panel" style="display: none;">
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Spending & Income Trends</span>
+          <span id="trends-grouping-tag" style="font-size:0.72rem; color:var(--text-muted);">Monthly View</span>
+        </div>
+
+        <div class="form-group">
+          <label>Chart Focus</label>
+          <select id="trends-focus" onchange="renderTrendsChart()">
+            <option value="OVERALL">Overall: Money In vs. Money Out</option>
+            <option value="SPEND_ONLY">Overall: Total Money Out Only</option>
+            <option value="INCOME_ONLY">Overall: Total Money In Only</option>
+            <optgroup label="Specific Envelopes">
+              <option value="Groceries">Groceries</option>
+              <option value="Food">Food (Dining Out)</option>
+              <option value="Car">Car</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Beauty/Clothes">Beauty/Clothes</option>
+              <option value="House">House</option>
+              <option value="Miscellaneous">Miscellaneous</option>
+              <option value="Teaching">Teaching</option>
+              <option value="School">School</option>
+              <option value="Travel">Travel</option>
+              <option value="Body/Health">Body/Health</option>
+              <option value="Christmas/Gifts">Christmas/Gifts</option>
+              <option value="Rent">Rent</option>
+              <option value="Streaming/Subscriptions">Streaming/Subscriptions</option>
+              <option value="Phones">Phones</option>
+              <option value="Insurance">Insurance</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Interest Charge">Interest Charge</option>
+              <option value="Cash">Cash</option>
+              <option value="USAA Debt Loan">USAA Debt Loan</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <label style="font-size:0.7rem; color:var(--text-muted); margin-bottom:6px; display:block; font-weight:600; text-transform:uppercase;">Timeframe Preset:</label>
+        <div class="range-pills">
+          <button type="button" class="range-pill" data-range="30" onclick="setTrendsPreset(30, this)">30 Days</button>
+          <button type="button" class="range-pill" data-range="90" onclick="setTrendsPreset(90, this)">90 Days</button>
+          <button type="button" class="range-pill active" data-range="180" onclick="setTrendsPreset(180, this)">6 Months</button>
+          <button type="button" class="range-pill" data-range="365" onclick="setTrendsPreset(365, this)">1 Year</button>
+          <button type="button" class="range-pill" data-range="ALL" onclick="setTrendsPreset('ALL', this)">All Time</button>
+        </div>
+
+        <div class="date-range-row">
+          <div>
+            <label style="font-size:0.68rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600; text-transform:uppercase;">Start Date</label>
+            <input type="date" id="trends-start" onchange="onCustomTrendDateChange()">
+          </div>
+          <div>
+            <label style="font-size:0.68rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:600; text-transform:uppercase;">End Date</label>
+            <input type="date" id="trends-end" onchange="onCustomTrendDateChange()">
+          </div>
+        </div>
+
+        <div class="chart-wrapper">
+          <canvas id="trends-canvas"></canvas>
+        </div>
+
+        <div class="kpi-grid" style="margin-bottom: 0;">
+          <div class="kpi-card featured">
+            <div class="kpi-label" id="trend-kpi-1-label">Period Money Out</div>
+            <div class="kpi-val" id="trend-kpi-1-val" style="color: var(--accent);">$0.00</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="trend-kpi-2-label">Period Average</div>
+            <div class="kpi-val" id="trend-kpi-2-val">$0.00</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label" id="trend-kpi-3-label">Peak Period</div>
+            <div class="kpi-val" id="trend-kpi-3-val">$0.00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 7: FAST EXPENSE & TRANSFER ENTRY -->
     <div id="view-log" class="view-panel" style="display: none;">
       <div class="panel">
         <div class="panel-header">
@@ -943,9 +1117,10 @@
               </select>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" id="payee-field-group">
               <label>Payee / Vendor</label>
-              <input type="text" id="tx-payee" placeholder="e.g. Walmart, Shoppette, Target" required oninput="autoMatchEnvelope(this.value)">
+              <input type="text" id="tx-payee" autocomplete="off" placeholder="e.g. Cafe du Burg, Walmart, Shoppette" required oninput="onPayeeInput(this.value)" onfocus="onPayeeInput(this.value)">
+              <div class="autocomplete-list" id="payee-autocomplete-list"></div>
             </div>
 
             <div class="form-group">
@@ -1125,6 +1300,10 @@
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
       Bills
     </button>
+    <button class="nav-item" id="nav-trends" onclick="switchNav('trends', this)">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+      Trends
+    </button>
     <button class="nav-item" id="nav-log" onclick="switchNav('log', this)">
       <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M12 4v16m8-8H4" /></svg>
       Log Spend
@@ -1208,8 +1387,423 @@
     let rawPaychecks = [...PAYCHECK_SCHEDULE];
     let rawBills = [...FALLBACK_BILLS];
     let rawTransactions = [];
+    let payeeDictionary = [];
     let isSplitMode = false;
     let confirmResolveFn = null;
+    let trendsChartInstance = null;
+
+    /* HELPER: FORMAT DATE YYYY-MM-DD */
+    function toIsoDate(d) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+
+    /* TRENDS: PRESET & CUSTOM DATE HANDLERS */
+    function initTrendsDates() {
+      const today = new Date();
+      const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 180);
+      const startInput = document.getElementById('trends-start');
+      const endInput = document.getElementById('trends-end');
+      if (startInput && !startInput.value) startInput.value = toIsoDate(start);
+      if (endInput && !endInput.value) endInput.value = toIsoDate(today);
+    }
+
+    function setTrendsPreset(days, btnEl) {
+      document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+
+      const today = new Date();
+      const endStr = toIsoDate(today);
+      let startStr = endStr;
+
+      if (days === 'ALL') {
+        let minDate = endStr;
+        rawTransactions.forEach(t => {
+          if (t.date && t.date < minDate) minDate = t.date;
+        });
+        startStr = minDate;
+      } else {
+        const startObj = new Date(today.getFullYear(), today.getMonth(), today.getDate() - Number(days));
+        startStr = toIsoDate(startObj);
+      }
+
+      document.getElementById('trends-start').value = startStr;
+      document.getElementById('trends-end').value = endStr;
+      renderTrendsChart();
+    }
+
+    function onCustomTrendDateChange() {
+      document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+      renderTrendsChart();
+    }
+
+    /* RENDER SPENDING & INCOME TRENDS CHART */
+    function renderTrendsChart() {
+      const canvas = document.getElementById('trends-canvas');
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const focus = document.getElementById('trends-focus').value;
+      const startStr = document.getElementById('trends-start').value || '2020-01-01';
+      const endStr = document.getElementById('trends-end').value || toIsoDate(new Date());
+
+      const startDate = new Date(startStr + 'T00:00:00');
+      const endDate = new Date(endStr + 'T23:59:59');
+      const spanDays = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
+      const useWeekly = spanDays <= 95;
+
+      document.getElementById('trends-grouping-tag').innerText = useWeekly ? 'Weekly Breakdown' : 'Monthly Breakdown';
+
+      // Build chronological bucket keys between startDate and endDate
+      const buckets = {};
+      const bucketOrder = [];
+
+      function getBucketKey(dateStr) {
+        if (!useWeekly) {
+          return dateStr.substring(0, 7); // YYYY-MM
+        }
+        const d = new Date(dateStr + 'T00:00:00');
+        const day = d.getDay();
+        const mondayOffset = day === 0 ? -6 : 1 - day;
+        const mon = new Date(d.getFullYear(), d.getMonth(), d.getDate() + mondayOffset);
+        return toIsoDate(mon);
+      }
+
+      function formatBucketLabel(key) {
+        const monthShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        if (!useWeekly) {
+          const parts = key.split('-');
+          const yr = parts[0].slice(2);
+          const mo = parseInt(parts[1], 10) - 1;
+          return `${monthShort[mo]} '${yr}`;
+        }
+        const parts = key.split('-');
+        const mo = parseInt(parts[1], 10) - 1;
+        const dd = parseInt(parts[2], 10);
+        return `${monthShort[mo]} ${dd}`;
+      }
+
+      // Pre-seed buckets so empty months/weeks still appear cleanly on the x-axis
+      if (!useWeekly) {
+        let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+        const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+        while (cursor <= endMonth && bucketOrder.length < 120) {
+          const k = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+          buckets[k] = { spend: 0, income: 0 };
+          bucketOrder.push(k);
+          cursor = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
+        }
+      } else {
+        let cursor = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+        while (cursor <= endDate && bucketOrder.length < 30) {
+          const k = getBucketKey(toIsoDate(cursor));
+          if (!buckets[k]) {
+            buckets[k] = { spend: 0, income: 0 };
+            bucketOrder.push(k);
+          }
+          cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 7);
+        }
+      }
+
+      // Aggregate matching ledger rows
+      rawTransactions.forEach(t => {
+        if (!t.date || t.date < startStr || t.date > endStr) return;
+        const env = (t.envelope || "").trim();
+        const envLower = env.toLowerCase();
+        const payeeLower = (t.payee || "").toLowerCase();
+        if (envLower === "transfer" || payeeLower.includes("baseline reconciliation")) return;
+
+        const amt = parseFloat(t.amount) || 0;
+        if (amt === 0) return;
+
+        const k = getBucketKey(t.date);
+        if (!buckets[k]) {
+          buckets[k] = { spend: 0, income: 0 };
+          bucketOrder.push(k);
+        }
+
+        if (focus === 'OVERALL' || focus === 'SPEND_ONLY' || focus === 'INCOME_ONLY') {
+          if (amt > 0) buckets[k].income += amt;
+          else buckets[k].spend += Math.abs(amt);
+        } else if (envLower === focus.toLowerCase()) {
+          if (amt < 0) buckets[k].spend += Math.abs(amt);
+          else buckets[k].spend = Math.max(0, buckets[k].spend - amt);
+        }
+      });
+
+      bucketOrder.sort();
+      const labels = bucketOrder.map(formatBucketLabel);
+      const spendSeries = bucketOrder.map(k => Math.round(buckets[k].spend * 100) / 100);
+      const incomeSeries = bucketOrder.map(k => Math.round(buckets[k].income * 100) / 100);
+
+      // Update KPI summary cards
+      const countBuckets = Math.max(1, bucketOrder.length);
+      if (focus === 'OVERALL') {
+        const totalIn = incomeSeries.reduce((a, b) => a + b, 0);
+        const totalOut = spendSeries.reduce((a, b) => a + b, 0);
+        const net = totalIn - totalOut;
+        document.getElementById('trend-kpi-1-label').innerText = 'Total Money Out';
+        document.getElementById('trend-kpi-1-val').innerText = `$${totalOut.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-1-val').style.color = 'var(--accent)';
+
+        document.getElementById('trend-kpi-2-label').innerText = 'Total Money In';
+        document.getElementById('trend-kpi-2-val').innerText = `$${totalIn.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-2-val').style.color = 'var(--positive)';
+
+        document.getElementById('trend-kpi-3-label').innerText = 'Leftover Cash';
+        document.getElementById('trend-kpi-3-val').innerText = `${net < 0 ? '-' : '+'}$${Math.abs(net).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-3-val').style.color = net >= 0 ? 'var(--positive)' : 'var(--negative)';
+      } else if (focus === 'INCOME_ONLY') {
+        const totalIn = incomeSeries.reduce((a, b) => a + b, 0);
+        const peakIn = incomeSeries.length ? Math.max(...incomeSeries) : 0;
+        document.getElementById('trend-kpi-1-label').innerText = 'Total Money In';
+        document.getElementById('trend-kpi-1-val').innerText = `$${totalIn.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-1-val').style.color = 'var(--positive)';
+
+        document.getElementById('trend-kpi-2-label').innerText = useWeekly ? 'Weekly Avg' : 'Monthly Avg';
+        document.getElementById('trend-kpi-2-val').innerText = `$${(totalIn / countBuckets).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-2-val').style.color = 'var(--text)';
+
+        document.getElementById('trend-kpi-3-label').innerText = 'Peak Period';
+        document.getElementById('trend-kpi-3-val').innerText = `$${peakIn.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-3-val').style.color = 'var(--positive)';
+      } else {
+        const totalOut = spendSeries.reduce((a, b) => a + b, 0);
+        const peakOut = spendSeries.length ? Math.max(...spendSeries) : 0;
+        document.getElementById('trend-kpi-1-label').innerText = focus === 'SPEND_ONLY' ? 'Total Money Out' : `${focus} Total`;
+        document.getElementById('trend-kpi-1-val').innerText = `$${totalOut.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-1-val').style.color = 'var(--accent)';
+
+        document.getElementById('trend-kpi-2-label').innerText = useWeekly ? 'Weekly Avg' : 'Monthly Avg';
+        document.getElementById('trend-kpi-2-val').innerText = `$${(totalOut / countBuckets).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-2-val').style.color = 'var(--text)';
+
+        document.getElementById('trend-kpi-3-label').innerText = 'Peak Period';
+        document.getElementById('trend-kpi-3-val').innerText = `$${peakOut.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+        document.getElementById('trend-kpi-3-val').style.color = 'var(--warning)';
+      }
+
+      // Build Chart.js datasets
+      const datasets = [];
+      if (focus === 'OVERALL') {
+        datasets.push({
+          label: 'Money In',
+          data: incomeSeries,
+          backgroundColor: 'rgba(16, 185, 129, 0.78)',
+          borderColor: '#10b981',
+          borderWidth: 1,
+          borderRadius: 4
+        });
+        datasets.push({
+          label: 'Money Out',
+          data: spendSeries,
+          backgroundColor: 'rgba(59, 130, 246, 0.82)',
+          borderColor: '#3b82f6',
+          borderWidth: 1,
+          borderRadius: 4
+        });
+      } else if (focus === 'INCOME_ONLY') {
+        datasets.push({
+          label: 'Money In',
+          data: incomeSeries,
+          backgroundColor: 'rgba(16, 185, 129, 0.8)',
+          borderColor: '#10b981',
+          borderWidth: 1,
+          borderRadius: 4
+        });
+      } else {
+        datasets.push({
+          label: focus === 'SPEND_ONLY' ? 'Money Out' : focus,
+          data: spendSeries,
+          backgroundColor: 'rgba(59, 130, 246, 0.85)',
+          borderColor: '#3b82f6',
+          borderWidth: 1,
+          borderRadius: 4
+        });
+
+        // Add Monthly Target reference line when viewing a specific envelope on Monthly scale
+        if (focus !== 'SPEND_ONLY' && !useWeekly) {
+          const envObj = rawEnvelopes.find(e => e.category && e.category.toLowerCase() === focus.toLowerCase());
+          const targetAmt = envObj ? parseFloat(envObj.target) || 0 : 0;
+          if (targetAmt > 0) {
+            datasets.push({
+              type: 'line',
+              label: `Monthly Target ($${targetAmt.toFixed(0)})`,
+              data: bucketOrder.map(() => targetAmt),
+              borderColor: '#f59e0b',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              pointRadius: 0,
+              fill: false
+            });
+          }
+        }
+      }
+
+      if (trendsChartInstance) {
+        trendsChartInstance.destroy();
+      }
+
+      trendsChartInstance = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: { labels: labels, datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              labels: { color: '#94a3b8', font: { size: 11 } }
+            },
+            tooltip: {
+              backgroundColor: '#1d212a',
+              titleColor: '#f1f5f9',
+              bodyColor: '#f1f5f9',
+              borderColor: '#2a2f3d',
+              borderWidth: 1,
+              callbacks: {
+                label: (ctx) => `${ctx.dataset.label}: $${(ctx.parsed.y || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 10 }, maxRotation: 45 },
+              grid: { color: 'rgba(255,255,255,0.04)' }
+            },
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#94a3b8',
+                font: { size: 10 },
+                callback: (val) => '$' + val.toLocaleString()
+              },
+              grid: { color: 'rgba(255,255,255,0.06)' }
+            }
+          }
+        }
+      });
+    }
+
+    /* BUILD FULL MERCHANT AUTOCOMPLETE DICTIONARY FROM LEDGER */
+    function buildPayeeDictionary() {
+      const map = {};
+      rawTransactions.forEach(t => {
+        const name = (t.payee || "").trim();
+        if (!name) return;
+        const lower = name.toLowerCase();
+        if (lower.startsWith("transfer ") || lower.includes("baseline reconciliation")) return;
+
+        const key = lower.replace(/[^a-z0-9]/g, "");
+        if (!key) return;
+
+        if (!map[key]) {
+          map[key] = {
+            name: name,
+            count: 0,
+            envCounts: {},
+            acctCounts: {}
+          };
+        }
+        const item = map[key];
+        item.count += 1;
+        if (item.count === 1) item.name = name;
+
+        const env = (t.envelope || "").trim();
+        if (env && env !== "Transfer" && env !== "Income") {
+          item.envCounts[env] = (item.envCounts[env] || 0) + 1;
+        }
+        const acct = (t.account || "").trim();
+        if (acct) {
+          item.acctCounts[acct] = (item.acctCounts[acct] || 0) + 1;
+        }
+      });
+
+      payeeDictionary = Object.values(map).map(item => {
+        const bestEnv = Object.entries(item.envCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "";
+        const bestAcct = Object.entries(item.acctCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || (bestEnv ? ENVELOPE_ACCOUNT_ROUTING[bestEnv] : "");
+        return {
+          name: item.name,
+          count: item.count,
+          envelope: bestEnv,
+          account: bestAcct
+        };
+      }).sort((a, b) => b.count - a.count);
+    }
+
+    /* LIVE AUTOCOMPLETE DROPDOWN ON PAYEE INPUT */
+    function onPayeeInput(text) {
+      autoMatchEnvelope(text);
+      const listEl = document.getElementById('payee-autocomplete-list');
+      if (!listEl) return;
+
+      const query = (text || "").trim().toLowerCase();
+      if (!query || payeeDictionary.length === 0) {
+        listEl.classList.remove('open');
+        listEl.innerHTML = "";
+        return;
+      }
+
+      const prefixMatches = [];
+      const containsMatches = [];
+
+      payeeDictionary.forEach(item => {
+        const nameLower = item.name.toLowerCase();
+        if (nameLower === query) return;
+        if (nameLower.startsWith(query)) {
+          prefixMatches.push(item);
+        } else if (nameLower.includes(query)) {
+          containsMatches.push(item);
+        }
+      });
+
+      const results = [...prefixMatches, ...containsMatches].slice(0, 6);
+      if (results.length === 0) {
+        listEl.classList.remove('open');
+        listEl.innerHTML = "";
+        return;
+      }
+
+      listEl.innerHTML = "";
+      results.forEach(item => {
+        const idx = item.name.toLowerCase().indexOf(query);
+        let highlighted = item.name;
+        if (idx !== -1) {
+          const before = item.name.slice(0, idx);
+          const match = item.name.slice(idx, idx + query.length);
+          const after = item.name.slice(idx + query.length);
+          highlighted = `${before}<mark>${match}</mark>${after}`;
+        }
+
+        const row = document.createElement('div');
+        row.className = 'autocomplete-item';
+        const metaText = [item.envelope, item.account].filter(Boolean).join(" • ");
+        row.innerHTML = `
+          <span class="ac-name">${highlighted}</span>
+          ${metaText ? `<span class="ac-meta">${metaText}</span>` : ''}
+        `;
+        row.onmousedown = (e) => {
+          e.preventDefault();
+          selectAutocompletePayee(item);
+        };
+        listEl.appendChild(row);
+      });
+
+      listEl.classList.add('open');
+    }
+
+    function selectAutocompletePayee(item) {
+      setPayee(item.name, item.envelope, item.account);
+      closePayeeAutocomplete();
+    }
+
+    function closePayeeAutocomplete() {
+      const listEl = document.getElementById('payee-autocomplete-list');
+      if (listEl) {
+        listEl.classList.remove('open');
+      }
+    }
 
     function showConfirmModal({ badge, title, body, match, yesText, isDanger }) {
       return new Promise(resolve => {
@@ -1294,9 +1888,14 @@
       }
     }
 
+    /* DYNAMIC TOP 7 PAYEES FROM TRAILING 365 DAYS */
     function renderDynamicChips() {
       const container = document.getElementById('dynamic-chips');
       if (!container || !rawTransactions || rawTransactions.length === 0) return;
+
+      const now = new Date();
+      const cutoffObj = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+      const cutoffStr = toIsoDate(cutoffObj);
 
       const excludedEnvelopes = new Set([
         "transfer", "income", "interest charge", "rent",
@@ -1315,6 +1914,7 @@
       const stats = {};
 
       rawTransactions.forEach(t => {
+        if (!t.date || t.date < cutoffStr) return; // Keep Quick-Select Chips scoped to trailing 365 days
         const amt = parseFloat(t.amount) || 0;
         if (amt >= 0) return;
 
@@ -1364,7 +1964,10 @@
         chip.className = 'chip';
         chip.title = `${item.displayName} (${item.count} visits • ${bestEnv} • ${bestAcct})`;
         chip.innerText = item.displayName;
-        chip.onclick = () => setPayee(item.displayName, bestEnv, bestAcct);
+        chip.onclick = () => {
+          setPayee(item.displayName, bestEnv, bestAcct);
+          closePayeeAutocomplete();
+        };
         container.appendChild(chip);
       });
     }
@@ -1394,11 +1997,7 @@
     }
 
     function initDate() {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      const todayStr = `${yyyy}-${mm}-${dd}`;
+      const todayStr = toIsoDate(new Date());
 
       const dateInput = document.getElementById('tx-date');
       if (dateInput && !dateInput.value) dateInput.value = todayStr;
@@ -1414,6 +2013,7 @@
       document.getElementById('mode-expense-btn').classList.toggle('active', !isTransfer);
       document.getElementById('mode-transfer-btn').classList.toggle('active', isTransfer);
       document.getElementById('entry-panel-title').innerText = isTransfer ? 'Account Transfer / Card Payment' : 'Fast Expense Entry';
+      closePayeeAutocomplete();
     }
 
     function setTransferPreset(fromAcct, toAcct) {
@@ -1460,7 +2060,7 @@
       const lower = text.toLowerCase();
       const map = {
         "shoppette": "Car", "casey": "Car", "valero": "Car", "oil": "Car",
-        "sonic": "Food", "mcdonald": "Food", "chick-fil-a": "Food", "starbucks": "Food", "cava": "Food",
+        "sonic": "Food", "mcdonald": "Food", "chick-fil-a": "Food", "starbucks": "Food", "cava": "Food", "cafe du burg": "Food",
         "commissary": "Groceries", "aldi": "Groceries", "hy-vee": "Groceries",
         "sephora": "Beauty/Clothes", "ulta": "Beauty/Clothes", "torrid": "Beauty/Clothes", "old navy": "Beauty/Clothes",
         "theater": "Entertainment", "amc": "Entertainment", "b&b": "Entertainment",
@@ -1495,12 +2095,14 @@
           rawBills = data.bills;
         }
         rawTransactions = data.transactions || [];
+        buildPayeeDictionary();
         renderUpcomingTiles();
         renderDashboard();
         renderAccounts();
         renderBillsChecklist();
         renderDynamicChips();
         applyTxFilters();
+        renderTrendsChart();
         dot.classList.remove('syncing');
         status.innerText = "Google Sheet Live";
       } catch (err) {
@@ -1856,11 +2458,7 @@
     }
 
     async function payManualBill(payee, env, acct, amt) {
-      const today = new Date();
-      const yyyy = today.getFullYear();
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const dd = String(today.getDate()).padStart(2, '0');
-      const dateStr = `${yyyy}-${mm}-${dd}`;
+      const dateStr = toIsoDate(new Date());
 
       const dup = findDuplicateTransaction(dateStr, payee, amt);
       if (dup) {
@@ -2050,6 +2648,10 @@
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       document.getElementById('view-' + viewId).style.display = 'block';
       if (el) el.classList.add('active');
+      closePayeeAutocomplete();
+      if (viewId === 'trends') {
+        renderTrendsChart();
+      }
     }
 
     async function postPayload(payload) {
@@ -2096,6 +2698,7 @@
 
     async function submitTransaction(e) {
       e.preventDefault();
+      closePayeeAutocomplete();
       const dateVal = document.getElementById('tx-date').value;
       const payee = document.getElementById('tx-payee').value.trim();
       const account = document.getElementById('tx-account').value;
@@ -2233,9 +2836,17 @@
       setTimeout(() => { t.style.display = 'none'; }, 2400);
     }
 
+    document.addEventListener('click', (e) => {
+      const group = document.getElementById('payee-field-group');
+      if (group && !group.contains(e.target)) {
+        closePayeeAutocomplete();
+      }
+    });
+
     window.addEventListener('online', flushOfflineQueue);
     window.addEventListener('DOMContentLoaded', () => {
       initDate();
+      initTrendsDates();
       onEnvelopeSelected(document.getElementById('tx-envelope').value);
       renderUpcomingTiles();
       fetchSheetData();
